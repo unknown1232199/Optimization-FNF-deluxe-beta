@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FNF Spritesheet Optimizer</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+<style>
+    body {
+        font-family: Arial, Helvetica, sans-serif;
+        background: #121212;
+        color: #fff;
+        text-align: center;
+        margin: 0;
+        padding: 15px;
+    }
+    .container {
+        max-width: 900px;
+        margin: auto;
+        background: #202020;
+        padding: 15px;
+        border-radius: 10px;
+    }
+    .card {
+        background: #2a2a2a;
+        padding: 15px;
+        border-radius: 10px;
+        margin: 10px 0;
+        text-align: left;
+    }
+    .card > p:first-child, .card > b {
+        text-align: center;
+        display: block;
+    }
+    button {
+        width: 100%;
+        max-width: 350px;
+        padding: 12px;
+        background: #00a8ff; 
+        border: none;
+        color: #fff;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        border-radius: 6px;
+        margin: 8px auto;
+        display: block;
+        transition: background 0.2s ease;
+    }
+    button:hover {
+        background: #0097e6; 
+    }
+    .btn-group {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 5px;
+        margin-top: 10px;
+    }
+    .btn-group button {
+        width: auto;
+        flex: 1 1 18%;
+        margin: 0;
+        padding: 10px;
+        font-size: 14px;
+        background: #00a8ff;
+    }
+    .btn-group button:hover {
+        background: #0097e6;
+    }
+    .btn-auto {
+        background: #0984e3 !important; 
+    }
+    .btn-auto:hover {
+        background: #74b9ff !important;
+    }
+    .btn-secondary {
+        background: #6c5ce7 !important;
+    }
+    .btn-secondary:hover {
+        background: #a29bfe !important;
+    }
+    input[type="range"] {
+        width: 100%;
+        margin-top: 10px;
+    }
+    input[type="number"] {
+        width: 80px;
+        padding: 6px;
+        border-radius: 5px;
+        border: none;
+        background: #1a1a1a;
+        color: #fff;
+        text-align: center;
+    }
+    select {
+        width: 100%;
+        padding: 8px;
+        border-radius: 5px;
+        border: none;
+        background: #1a1a1a;
+        color: #fff;
+        margin-bottom: 8px;
+    }
+    canvas {
+        max-width: 100%;
+        border: 1px solid #333;
+        margin-top: 10px;
+        border-radius: 5px;
+    }
+    p, label {
+        font-size: 15px;
+    }
+    .info-text {
+        color: #aaa;
+        font-size: 13px;
+        margin-top: 5px;
+        line-height: 1.4;
+        text-align: center;
+    }
+    .json-detect {
+        color: #55efc4;
+        font-size: 13px;
+        margin-top: 8px;
+        line-height: 1.5;
+        text-align: left;
+        background: #1a1a1a;
+        padding: 8px;
+        border-radius: 6px;
+        display: none;
+    }
+    .toggle-row {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 8px;
+    }
+    .toggle-row input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+    }
+    .adjust-row {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 15px;
+        margin-top: 8px;
+        flex-wrap: wrap;
+    }
+    .adjust-row label {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        font-size: 13px;
+        color: #aaa;
+    }
+</style>
+</head>
+<body>
+
+<h1>Spritesheet Optimizer</h1>
+
+<div class="container">
+
+    <div class="card">
+        <p><b>1. Elegir PNG</b></p>
+        <input type="file" id="pngUpload" accept="image/png,.png,application/octet-stream">
+        <p id="fileInfo" class="info-text"></p>
+    </div>
+
+    <div class="card">
+        <p><b>2. Elegir XML</b></p>
+        <input type="file" id="xmlUpload" accept=".xml">
+    </div>
+
+    <div class="card">
+        <p><b>3. Elegir JSON (Opcional)</b></p>
+        <input type="file" id="jsonUpload" accept=".json">
+        <p class="info-text" style="margin: 0;">Actualiza automáticamente "image", "scale" y offsets de animación. Se guarda con el mismo nombre del archivo original.</p>
+        <div id="jsonDetect" class="json-detect"></div>
+    </div>
+
+    <div class="card">
+        <p><b>4. ¿Es personaje jugable?</b></p>
+        <div class="toggle-row">
+            <input type="checkbox" id="playableToggle">
+            <span id="playableLabel">false</span>
+        </div>
+        <p class="info-text" style="margin: 5px 0 0;">Si el JSON ya trae "playable", se detecta solo. Si no, elegís vos y se agrega al exportar.</p>
+    </div>
+
+    <div class="card">
+        <p><b>Escala: <span id="scaleValue">1</span>x</b></p>
+        <input type="range" id="scale" min="0.25" max="1" step="0.05" value="1">
+        
+        <div class="btn-group">
+            <button onclick="setScale(1)">100%</button>
+            <button onclick="setScale(0.75)">75%</button>
+            <button onclick="setScale(0.5)">50%</button>
+            <button onclick="setScale(0.25)">25%</button>
+            <button onclick="autoScale()" class="btn-auto">AUTO</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <label style="display:flex; align-items:center; gap:8px; justify-content:center;">
+            <input type="checkbox" id="lowRam" checked> <b>Low RAM Mode</b>
+        </label>
+        <p class="info-text" style="margin: 0;">Desactiva el suavizado de imagen para mejor rendimiento.</p>
+    </div>
+
+    <div class="card">
+        <p><b>Vista previa y ajuste de frames</b></p>
+        <p class="info-text" style="margin: 0 0 8px;">Elegí un frame para ver dónde queda ubicado en el atlas escalado, y ajustá su FrameX/FrameY si se ve corrido dentro del juego.</p>
+        <select id="frameSelect"><option value="">-- Cargá PNG y XML primero --</option></select>
+        <div class="adjust-row">
+            <label>Ajuste FrameX (px)
+                <input type="number" id="adjustX" value="0" step="1">
+            </label>
+            <label>Ajuste FrameY (px)
+                <input type="number" id="adjustY" value="0" step="1">
+            </label>
+        </div>
+        <canvas id="previewCanvas" style="display:none;"></canvas>
+    </div>
+
+    <div class="card">
+        <p><b>Overlay: Original vs Optimizado</b></p>
+        <p class="info-text" style="margin:0 0 8px;">Superpone el PNG original con la versión optimizada (re-escalada de vuelta al tamaño original) para ver si algo se corrió al bajar la calidad.</p>
+        <div class="adjust-row">
+            <label>Opacidad optimizado (%)
+                <input type="range" id="overlayOpacity" min="0" max="100" value="50">
+            </label>
+        </div>
+        <div class="adjust-row">
+            <label>Offset X (px)
+                <input type="number" id="overlayOffsetX" value="0" step="1">
+            </label>
+            <label>Offset Y (px)
+                <input type="number" id="overlayOffsetY" value="0" step="1">
+            </label>
+        </div>
+        <button onclick="buildOverlay()" class="btn-secondary">Actualizar Overlay</button>
+        <canvas id="overlayCanvas" style="display:none;"></canvas>
+    </div>
+
+    <button onclick="optimize()" style="padding: 15px; font-size: 18px;">Optimize & Download</button>
+    <button onclick="extractFrames()" class="btn-secondary">Extraer Frames Individuales (ZIP)</button>
+    <p id="history" class="info-text"></p>
+
+    <canvas id="canvas" style="display:none;"></canvas>
+</div>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const previewCanvas = document.getElementById('previewCanvas');
+const previewCtx = previewCanvas.getContext('2d');
+const scaleSlider = document.getElementById('scale');
+const scaleValue = document.getElementById('scaleValue');
+const fileInfo = document.getElementById('fileInfo');
+const historyText = document.getElementById('history');
+const jsonDetectEl = document.getElementById('jsonDetect');
+const playableToggle = document.getElementById('playableToggle');
+const playableLabel = document.getElementById('playableLabel');
+const frameSelect = document.getElementById('frameSelect');
+const adjustX = document.getElementById('adjustX');
+const adjustY = document.getElementById('adjustY');
+const overlayCanvas = document.getElementById('overlayCanvas');
+const overlayCtx = overlayCanvas.getContext('2d');
+const overlayOpacity = document.getElementById('overlayOpacity');
+const overlayOffsetX = document.getElementById('overlayOffsetX');
+const overlayOffsetY = document.getElementById('overlayOffsetY');
+
+overlayOpacity.oninput = buildOverlay;
+overlayOffsetX.oninput = buildOverlay;
+overlayOffsetY.oninput = buildOverlay;
+
+// Superpone el original y el optimizado (reescalado de vuelta a tamaño original)
+// para detectar visualmente si algo quedo corrido tras la optimizacion
+function buildOverlay() {
+    if (!img.src) return;
+    const scale = parseFloat(scaleSlider.value);
+    const lowRam = document.getElementById('lowRam').checked;
+
+    overlayCanvas.style.display = "block";
+    overlayCanvas.width = img.width;
+    overlayCanvas.height = img.height;
+
+    overlayCtx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+    overlayCtx.globalAlpha = 1;
+    overlayCtx.imageSmoothingEnabled = !lowRam;
+    overlayCtx.drawImage(img, 0, 0, img.width, img.height);
+
+    // Simula la version optimizada: reduce y luego reagranda al tamaño original
+    const smallCanvas = document.createElement('canvas');
+    smallCanvas.width = Math.round(img.width * scale);
+    smallCanvas.height = Math.round(img.height * scale);
+    const smallCtx = smallCanvas.getContext('2d');
+    smallCtx.imageSmoothingEnabled = !lowRam;
+    smallCtx.drawImage(img, 0, 0, smallCanvas.width, smallCanvas.height);
+
+    const offX = parseInt(overlayOffsetX.value) || 0;
+    const offY = parseInt(overlayOffsetY.value) || 0;
+
+    overlayCtx.globalAlpha = (parseInt(overlayOpacity.value) || 0) / 100;
+    overlayCtx.drawImage(smallCanvas, 0, 0, smallCanvas.width, smallCanvas.height, offX, offY, img.width, img.height);
+    overlayCtx.globalAlpha = 1;
+}
+
+let img = new Image();
+let xmlText = "";
+let jsonText = "";
+let jsonObj = null;
+let jsonFileName = "";
+let charName = "character";
+let originalSize = 0;
+
+// frames: lista parseada del XML para preview [{index, name, x, y, width, height}]
+let frames = [];
+// corrections: ajustes manuales de FrameX/FrameY por indice de frame { index: {dx, dy} }
+let corrections = {};
+
+const savedScale = localStorage.getItem('scale');
+if(savedScale) {
+    scaleSlider.value = savedScale;
+    scaleValue.textContent = savedScale;
+}
+
+const lastChar = localStorage.getItem("lastCharacter");
+const lastScale = localStorage.getItem("lastScale");
+if(lastChar) {
+    historyText.textContent = "Last optimized: " + lastChar + " (" + (lastScale || "1") + "x)";
+}
+
+scaleSlider.oninput = () => {
+    scaleValue.textContent = scaleSlider.value;
+    localStorage.setItem('scale', scaleSlider.value);
+    updateFileInfo();
+    buildPreview();
+    buildOverlay();
+};
+
+playableToggle.onchange = () => {
+    playableLabel.textContent = playableToggle.checked ? "true" : "false";
+};
+
+function setScale(value) {
+    scaleSlider.value = value;
+    scaleValue.textContent = value;
+    localStorage.setItem('scale', value);
+    updateFileInfo();
+    buildPreview();
+    buildOverlay();
+}
+
+function autoScale() {
+    if(img.width >= 2500) {
+        setScale(0.5);
+    } else if(img.width >= 1800) {
+        setScale(0.75);
+    } else {
+        setScale(1);
+    }
+}
+
+function updateFileInfo() {
+    if(originalSize > 0 && img.src) {
+        const scale = parseFloat(scaleSlider.value);
+        const estimated = originalSize * scale * scale;
+        
+        fileInfo.innerHTML = `
+            Resolution: ${img.width}x${img.height} <br>
+            Original Size: ${(originalSize/1024/1024).toFixed(2)} MB <br>
+            <b>Estimated: ${(estimated/1024/1024).toFixed(2)} MB</b>
+        `;
+    }
+}
+
+document.getElementById('pngUpload').onchange = e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    charName = file.name.replace(/\.png$/i, "");
+    originalSize = file.size; 
+
+    const reader = new FileReader();
+    reader.onload = () => img.src = reader.result;
+    reader.readAsDataURL(file);
+};
+
+img.onload = () => {
+    updateFileInfo();
+    buildPreview();
+    buildOverlay();
+};
+
+document.getElementById('xmlUpload').onchange = e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+        xmlText = reader.result;
+        parseFramesFromXML();
+        buildPreview();
+    };
+    reader.readAsText(file);
+};
+
+document.getElementById('jsonUpload').onchange = e => {
+    const file = e.target.files[0];
+    if (!file) {
+        jsonText = "";
+        jsonObj = null;
+        jsonFileName = "";
+        jsonDetectEl.style.display = "none";
+        return;
+    }
+    jsonFileName = file.name; // 1. el JSON exportado usa este mismo nombre
+    const reader = new FileReader();
+    reader.onload = () => {
+        jsonText = reader.result;
+        // 4. Detectar el JSON apenas se sube
+        try {
+            jsonObj = JSON.parse(jsonText);
+            let info = "JSON detectado (" + jsonFileName + "):<br>";
+            info += "Imagen: " + (jsonObj.image || "(sin imagen)") + "<br>";
+            info += "Escala actual: " + (jsonObj.scale !== undefined ? jsonObj.scale : "(sin escala)") + "<br>";
+            if (jsonObj.animations) {
+                info += "Animaciones: " + jsonObj.animations.length + "<br>";
+            }
+            if (jsonObj.playable !== undefined) {
+                info += "Playable detectado: " + jsonObj.playable;
+                playableToggle.checked = !!jsonObj.playable;
+                playableLabel.textContent = playableToggle.checked ? "true" : "false";
+            } else {
+                info += "Playable: no especificado en el JSON (elegí abajo)";
+            }
+            jsonDetectEl.innerHTML = info;
+            jsonDetectEl.style.display = "block";
+        } catch (err) {
+            jsonObj = null;
+            jsonDetectEl.innerHTML = "No se pudo leer el JSON (¿formato inválido?)";
+            jsonDetectEl.style.display = "block";
+        }
+    };
+    reader.readAsText(file);
+};
+
+// --- Parseo de frames del XML para la vista previa ---
+function parseFramesFromXML() {
+    frames = [];
+    corrections = {};
+    if (!xmlText) return;
+    const parser = new DOMParser();
+    const xml = parser.parseFromString(xmlText, "application/xml");
+    const subs = xml.getElementsByTagName("SubTexture");
+    let i = 0;
+    for (let s of subs) {
+        frames.push({
+            index: i,
+            name: s.getAttribute("name") || ("frame_" + i),
+            x: parseInt(s.getAttribute("x")) || 0,
+            y: parseInt(s.getAttribute("y")) || 0,
+            width: parseInt(s.getAttribute("width")) || 0,
+            height: parseInt(s.getAttribute("height")) || 0
+        });
+        i++;
+    }
+    // repoblar el select
+    frameSelect.innerHTML = "";
+    if (frames.length === 0) {
+        frameSelect.innerHTML = "<option value=''>-- Sin frames --</option>";
+        return;
+    }
+    frames.forEach(f => {
+        const opt = document.createElement("option");
+        opt.value = f.index;
+        opt.textContent = f.name + " (" + f.width + "x" + f.height + ")";
+        frameSelect.appendChild(opt);
+    });
+}
+
+frameSelect.onchange = () => {
+    const idx = frameSelect.value;
+    if (idx === "") return;
+    const c = corrections[idx] || { dx: 0, dy: 0 };
+    adjustX.value = c.dx;
+    adjustY.value = c.dy;
+    buildPreview();
+};
+
+adjustX.oninput = adjustY.oninput = () => {
+    const idx = frameSelect.value;
+    if (idx === "") return;
+    corrections[idx] = {
+        dx: parseInt(adjustX.value) || 0,
+        dy: parseInt(adjustY.value) || 0
+    };
+    buildPreview();
+};
+
+// --- Dibuja el atlas escalado con los recuadros de cada frame ---
+function buildPreview() {
+    if (!img.src || frames.length === 0) return;
+    const scale = parseFloat(scaleSlider.value);
+    previewCanvas.style.display = "block";
+    previewCanvas.width = Math.round(img.width * scale);
+    previewCanvas.height = Math.round(img.height * scale);
+    previewCtx.imageSmoothingEnabled = !document.getElementById('lowRam').checked;
+    previewCtx.drawImage(img, 0, 0, previewCanvas.width, previewCanvas.height);
+
+    const selectedIdx = frameSelect.value;
+
+    frames.forEach(f => {
+        let sx = fixZero(f.x, scale);
+        let sy = fixZero(f.y, scale);
+        const sw = Math.round(f.width * scale);
+        const sh = Math.round(f.height * scale);
+
+        const isSelected = String(f.index) === String(selectedIdx);
+        previewCtx.strokeStyle = isSelected ? "#ff3838" : "#55efc4";
+        previewCtx.lineWidth = isSelected ? 2 : 1;
+        previewCtx.strokeRect(sx, sy, sw, sh);
+    });
+}
+
+// 2. Fix de coordenadas en 0,0: si al bajar la escala una coordenada de atlas
+// queda en 0, la subimos a 1 para evitar bleeding/artefactos en el borde.
+function fixZero(rawValue, scale) {
+    if (scale < 1 && rawValue === 0) {
+        return 1;
+    }
+    return Math.round(rawValue * scale);
+}
+
+function optimize() {
+    if (!img.src || !xmlText) {
+        alert("Upload BOTH PNG and XML first!");
+        return;
+    }
+
+    const scale = parseFloat(scaleSlider.value);
+    const lowRam = document.getElementById('lowRam').checked;
+
+    canvas.width = Math.round(img.width * scale);
+    canvas.height = Math.round(img.height * scale);
+    
+    ctx.imageSmoothingEnabled = !lowRam;
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+    // --- 1. PROCESAR Y EXPORTAR XML ---
+    const parser = new DOMParser();
+    const xml = parser.parseFromString(xmlText, "application/xml");
+    const subs = xml.getElementsByTagName("SubTexture");
+
+    let i = 0;
+    for (let s of subs) {
+        // x, y: posición en el atlas -> aplica fix de 0,0
+        if (s.hasAttribute("x")) {
+            const v = parseInt(s.getAttribute("x"));
+            s.setAttribute("x", fixZero(v, scale));
+        }
+        if (s.hasAttribute("y")) {
+            const v = parseInt(s.getAttribute("y"));
+            s.setAttribute("y", fixZero(v, scale));
+        }
+        // width, height, frameWidth, frameHeight: solo escalar
+        ["width","height","frameWidth","frameHeight"].forEach(attr => {
+            if (s.hasAttribute(attr)) {
+                const v = parseInt(s.getAttribute(attr));
+                s.setAttribute(attr, Math.round(v * scale));
+            }
+        });
+        // frameX, frameY: escalar + aplicar ajuste manual (corrections) si existe
+        const corr = corrections[i] || { dx: 0, dy: 0 };
+        if (s.hasAttribute("frameX")) {
+            const v = parseInt(s.getAttribute("frameX"));
+            s.setAttribute("frameX", Math.round(v * scale) + corr.dx);
+        }
+        if (s.hasAttribute("frameY")) {
+            const v = parseInt(s.getAttribute("frameY"));
+            s.setAttribute("frameY", Math.round(v * scale) + corr.dy);
+        }
+        i++;
+    }
+
+    const serializer = new XMLSerializer();
+    const outXML = serializer.serializeToString(xml);
+    const xmlBlob = new Blob([outXML], { type: "text/xml" });
+
+    const xmlLink = document.createElement('a');
+    xmlLink.download = charName + "-low.xml";
+    xmlLink.href = URL.createObjectURL(xmlBlob);
+    xmlLink.click();
+    setTimeout(() => URL.revokeObjectURL(xmlLink.href), 100);
+
+    // --- 2. PROCESAR Y EXPORTAR JSON ---
+    if (jsonText) {
+        try {
+            const outObj = JSON.parse(jsonText);
+            
+            if (outObj.image) {
+                outObj.image = outObj.image + "-low"; 
+            } else {
+                outObj.image = charName + "-low";
+            }
+
+            if (outObj.scale) {
+                outObj.scale = parseFloat((outObj.scale / scale).toFixed(2));
+            } else {
+                outObj.scale = parseFloat((1 / scale).toFixed(2));
+            }
+
+            if (outObj.animations) {
+                outObj.animations.forEach(anim => {
+                    if (anim.offsets && Array.isArray(anim.offsets)) {
+                        anim.offsets[0] = Math.round(anim.offsets[0] * scale);
+                        anim.offsets[1] = Math.round(anim.offsets[1] * scale);
+                    }
+                });
+            }
+
+            // 3. Botón playable: agrega/sobreescribe el campo
+            outObj.playable = playableToggle.checked;
+
+            const outJSON = JSON.stringify(outObj, null, "\t");
+            const jsonBlob = new Blob([outJSON], { type: "application/json" });
+            
+            const jsonLink = document.createElement('a');
+            // 1. Mismo nombre que el archivo JSON original (no charName-low.json)
+            jsonLink.download = jsonFileName || (charName + ".json");
+            jsonLink.href = URL.createObjectURL(jsonBlob);
+            jsonLink.click();
+            setTimeout(() => URL.revokeObjectURL(jsonLink.href), 100);
+            
+        } catch (error) {
+            console.error("Error parsing JSON:", error);
+            alert("Error processing JSON. Is it formatted correctly?");
+        }
+    }
+
+    // --- 3. EXPORTAR PNG ---
+    canvas.toBlob((blob) => {
+        const pngLink = document.createElement('a');
+        pngLink.download = charName + "-low.png";
+        pngLink.href = URL.createObjectURL(blob);
+        pngLink.click();
+        setTimeout(() => URL.revokeObjectURL(pngLink.href), 100);
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        canvas.width = 1;
+        canvas.height = 1;
+    }, "image/png");
+
+    localStorage.setItem("lastCharacter", charName);
+    localStorage.setItem("lastScale", scale);
+    historyText.textContent = "Last optimized: " + charName + " (" + scale + "x)";
+}
+
+// --- Extraer cada frame del XML como PNG individual, comprimidos en un ZIP ---
+function extractFrames() {
+    if (!img.src || frames.length === 0) {
+        alert("Upload BOTH PNG and XML first!");
+        return;
+    }
+    if (typeof JSZip === "undefined") {
+        alert("No se pudo cargar JSZip (revisá tu conexión a internet).");
+        return;
+    }
+
+    const scale = parseFloat(scaleSlider.value);
+    const lowRam = document.getElementById('lowRam').checked;
+
+    // Render del atlas completo ya escalado, para recortar desde ahi
+    const fullCanvas = document.createElement('canvas');
+    fullCanvas.width = Math.round(img.width * scale);
+    fullCanvas.height = Math.round(img.height * scale);
+    const fullCtx = fullCanvas.getContext('2d');
+    fullCtx.imageSmoothingEnabled = !lowRam;
+    fullCtx.drawImage(img, 0, 0, fullCanvas.width, fullCanvas.height);
+
+    const zip = new JSZip();
+    const blobPromises = [];
+
+    frames.forEach(f => {
+        const sx = fixZero(f.x, scale);
+        const sy = fixZero(f.y, scale);
+        const sw = Math.round(f.width * scale);
+        const sh = Math.round(f.height * scale);
+        if (sw <= 0 || sh <= 0) return;
+
+        const frameCanvas = document.createElement('canvas');
+        frameCanvas.width = sw;
+        frameCanvas.height = sh;
+        const frameCtx = frameCanvas.getContext('2d');
+        frameCtx.imageSmoothingEnabled = !lowRam;
+        frameCtx.drawImage(fullCanvas, sx, sy, sw, sh, 0, 0, sw, sh);
+
+        const p = new Promise(resolve => {
+            frameCanvas.toBlob(blob => {
+                if (blob) zip.file(f.name + ".png", blob);
+                resolve();
+            }, "image/png");
+        });
+        blobPromises.push(p);
+    });
+
+    Promise.all(blobPromises).then(() => {
+        zip.generateAsync({ type: "blob" }).then(zipBlob => {
+            const zipLink = document.createElement('a');
+            zipLink.download = charName + "-frames.zip";
+            zipLink.href = URL.createObjectURL(zipBlob);
+            zipLink.click();
+            setTimeout(() => URL.revokeObjectURL(zipLink.href), 100);
+        });
+    });
+}
+</script>
+
+</body>
+</html>
