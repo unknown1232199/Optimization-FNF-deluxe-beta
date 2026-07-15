@@ -227,23 +227,21 @@
     </div>
 
     <div class="card">
-        <p><b>Overlay: Original vs Optimizado</b></p>
-        <p class="info-text" style="margin:0 0 8px;">Superpone el PNG original con la versión optimizada (re-escalada de vuelta al tamaño original) para ver si algo se corrió al bajar la calidad.</p>
-        <div class="adjust-row">
-            <label>Opacidad optimizado (%)
-                <input type="range" id="overlayOpacity" min="0" max="100" value="50">
-            </label>
-        </div>
-        <div class="adjust-row">
-            <label>Offset X (px)
+        <p><b>Overlay Funcional: Acomodar PNG Optimizado</b></p>
+        <p class="info-text" style="margin:0 0 8px;">Arrastrá el PNG optimizado (capa superior) sobre el original para acomodarlo. Los offsets se guardan automáticamente en el JSON.</p>
+        <canvas id="overlayCanvas" style="border: 2px solid #00a8ff; cursor: grab; display:none; margin-top:10px;"></canvas>
+        <div class="adjust-row" style="margin-top:15px;">
+            <label>Offset X
                 <input type="number" id="overlayOffsetX" value="0" step="1">
             </label>
-            <label>Offset Y (px)
+            <label>Offset Y
                 <input type="number" id="overlayOffsetY" value="0" step="1">
             </label>
+            <label>Opacidad (%)
+                <input type="range" id="overlayOpacity" min="0" max="100" value="70" style="width:120px;">
+            </label>
         </div>
-        <button onclick="buildOverlay()" class="btn-secondary">Actualizar Overlay</button>
-        <canvas id="overlayCanvas" style="display:none;"></canvas>
+        <button onclick="resetOverlay()" class="btn-secondary">Reset Overlay</button>
     </div>
 
     <button onclick="optimize()" style="padding: 15px; font-size: 18px;">Optimize & Download</button>
@@ -274,12 +272,31 @@ const overlayOpacity = document.getElementById('overlayOpacity');
 const overlayOffsetX = document.getElementById('overlayOffsetX');
 const overlayOffsetY = document.getElementById('overlayOffsetY');
 
-overlayOpacity.oninput = buildOverlay;
-overlayOffsetX.oninput = buildOverlay;
-overlayOffsetY.oninput = buildOverlay;
+// Variables para el dragging del overlay
+let isDragging = false;
+let dragStartX = 0;
+let dragStartY = 0;
+let dragStartOffsetX = 0;
+let dragStartOffsetY = 0;
 
-// Superpone el original y el optimizado (reescalado de vuelta a tamaño original)
-// para detectar visualmente si algo quedo corrido tras la optimizacion
+overlayOpacity.oninput = buildOverlay;
+
+overlayOffsetX.oninput = () => {
+    buildOverlay();
+};
+
+overlayOffsetY.oninput = () => {
+    buildOverlay();
+};
+
+function resetOverlay() {
+    overlayOffsetX.value = 0;
+    overlayOffsetY.value = 0;
+    overlayOpacity.value = 70;
+    buildOverlay();
+}
+
+// Superpone el original y el optimizado con dragging
 function buildOverlay() {
     if (!img.src) return;
     const scale = parseFloat(scaleSlider.value);
@@ -308,7 +325,81 @@ function buildOverlay() {
     overlayCtx.globalAlpha = (parseInt(overlayOpacity.value) || 0) / 100;
     overlayCtx.drawImage(smallCanvas, 0, 0, smallCanvas.width, smallCanvas.height, offX, offY, img.width, img.height);
     overlayCtx.globalAlpha = 1;
+
+    // Dibuja líneas de guía en el centro para alinear mejor
+    overlayCtx.strokeStyle = "#55efc4";
+    overlayCtx.lineWidth = 1;
+    overlayCtx.setLineDash([5, 5]);
+    overlayCtx.beginPath();
+    overlayCtx.moveTo(overlayCanvas.width / 2, 0);
+    overlayCtx.lineTo(overlayCanvas.width / 2, overlayCanvas.height);
+    overlayCtx.stroke();
+    overlayCtx.beginPath();
+    overlayCtx.moveTo(0, overlayCanvas.height / 2);
+    overlayCtx.lineTo(overlayCanvas.width, overlayCanvas.height / 2);
+    overlayCtx.stroke();
+    overlayCtx.setLineDash([]);
 }
+
+// --- MOUSE EVENTS PARA DRAGGING ---
+overlayCanvas.addEventListener('mousedown', (e) => {
+    if (!img.src) return;
+    const rect = overlayCanvas.getBoundingClientRect();
+    dragStartX = e.clientX - rect.left;
+    dragStartY = e.clientY - rect.top;
+    dragStartOffsetX = parseInt(overlayOffsetX.value) || 0;
+    dragStartOffsetY = parseInt(overlayOffsetY.value) || 0;
+    isDragging = true;
+    overlayCanvas.style.cursor = "grabbing";
+});
+
+document.addEventListener('mousemove', (e) => {
+    if (!isDragging || !overlayCanvas) return;
+    const rect = overlayCanvas.getBoundingClientRect();
+    const currentX = e.clientX - rect.left;
+    const currentY = e.clientY - rect.top;
+    const deltaX = currentX - dragStartX;
+    const deltaY = currentY - dragStartY;
+    overlayOffsetX.value = dragStartOffsetX + deltaX;
+    overlayOffsetY.value = dragStartOffsetY + deltaY;
+    buildOverlay();
+});
+
+document.addEventListener('mouseup', () => {
+    isDragging = false;
+    if (overlayCanvas) overlayCanvas.style.cursor = "grab";
+});
+
+// --- TOUCH EVENTS PARA MÓVILES ---
+overlayCanvas.addEventListener('touchstart', (e) => {
+    if (!img.src) return;
+    e.preventDefault();
+    const touch = e.touches[0];
+    const rect = overlayCanvas.getBoundingClientRect();
+    dragStartX = touch.clientX - rect.left;
+    dragStartY = touch.clientY - rect.top;
+    dragStartOffsetX = parseInt(overlayOffsetX.value) || 0;
+    dragStartOffsetY = parseInt(overlayOffsetY.value) || 0;
+    isDragging = true;
+});
+
+document.addEventListener('touchmove', (e) => {
+    if (!isDragging || !overlayCanvas) return;
+    e.preventDefault();
+    const touch = e.touches[0];
+    const rect = overlayCanvas.getBoundingClientRect();
+    const currentX = touch.clientX - rect.left;
+    const currentY = touch.clientY - rect.top;
+    const deltaX = currentX - dragStartX;
+    const deltaY = currentY - dragStartY;
+    overlayOffsetX.value = dragStartOffsetX + deltaX;
+    overlayOffsetY.value = dragStartOffsetY + deltaY;
+    buildOverlay();
+});
+
+document.addEventListener('touchend', () => {
+    isDragging = false;
+});
 
 let img = new Image();
 let xmlText = "";
@@ -621,6 +712,13 @@ function optimize() {
                         anim.offsets[1] = Math.round(anim.offsets[1] * scale);
                     }
                 });
+            }
+
+            // Guardar offsets del overlay en el JSON (para acomodación visual)
+            const globalOffX = parseInt(overlayOffsetX.value) || 0;
+            const globalOffY = parseInt(overlayOffsetY.value) || 0;
+            if (globalOffX !== 0 || globalOffY !== 0) {
+                outObj.globalOffset = [globalOffX, globalOffY];
             }
 
             // 3. Botón playable: agrega/sobreescribe el campo
