@@ -126,6 +126,37 @@
   .diag-item.ok{color:var(--green)}
   .diag-item.fail{color:var(--red)}
   .diag-item .ic{flex-shrink:0;width:14px;text-align:center}
+
+  /* ===== Diseño ===== */
+  :root{--bg:#0f0d17;--card:#171424;--field:#0d0b14;--line:#2a2540;--line2:#3d3560;
+    --accent:#a78bfa;--accent2:#f472b6;--green:#6ee7b7;--yellow:#fcd34d;--red:#fca5a5;
+    --txt:#ece9f7;--mut:#a39cc0;--mut2:#766f96}
+  body{background:radial-gradient(900px 420px at 50% -120px,rgba(167,139,250,.16),transparent 70%),var(--bg);
+    font-family:'Inter','Segoe UI',system-ui,sans-serif}
+  .hero h1{font-size:22px;letter-spacing:-.2px}
+  .hero h1::after{content:"";display:block;width:44px;height:3px;border-radius:2px;margin-top:8px;
+    background:linear-gradient(90deg,var(--accent),var(--accent2))}
+  .card{border-radius:14px;box-shadow:0 6px 24px rgba(0,0,0,.28)}
+  .card h2{display:flex;align-items:center;gap:8px;color:var(--txt);font-size:14px}
+  .card h2::before{content:"";width:3px;height:14px;border-radius:2px;
+    background:linear-gradient(180deg,var(--accent),var(--accent2))}
+  .drop{border-width:2px;border-radius:12px;padding:34px 16px;transition:border-color .2s,background .2s;
+    background:rgba(167,139,250,.04)}
+  .drop:hover,.drop.over{background:rgba(167,139,250,.1)}
+  input:focus,select:focus{box-shadow:0 0 0 3px rgba(167,139,250,.18)}
+  .stat .v{color:var(--accent)}
+  .btn{border-radius:10px;transition:filter .15s,transform .05s}
+  .btn:active:not(:disabled){transform:scale(.98)}
+  .btn.primary{background:linear-gradient(135deg,var(--accent),var(--accent2));border:0;color:#140f24}
+  .diff-item,.pack-row{border-radius:10px;transition:border-color .15s,background .15s}
+  .diff-item:hover,.pack-row:hover{border-color:var(--line2)}
+  .diff-item.active,.pack-row.selected{background:rgba(167,139,250,.08)}
+  .diff-item .lead{display:flex;align-items:center;gap:10px;min-width:0}
+  .diff-item input{accent-color:var(--accent);width:16px;height:16px;flex-shrink:0}
+  .structure .folder{color:var(--accent)}
+  .structure .week{color:var(--accent2)}
+  .info-banner{border-radius:10px}
+  .tag{background:rgba(167,139,250,.12);color:var(--accent);border-radius:999px;padding:1px 9px}
 </style>
 </head>
 <body>
@@ -363,6 +394,15 @@ function sanitizeName(s) {
     .replace(/[^a-z0-9\s\-_]/g, '')
     .replace(/\s+/g, '-').replace(/-+/g, '-')
     .replace(/^-|-$/g, '') || 'chart';
+}
+function psychSlug(s) {
+  // Igual que Paths.formatToSongPath de Psych: minúsculas, espacios → "-", sin caracteres inválidos
+  return String(s).toLowerCase().replace(/ /g, '-')
+    .replace(/[~&\\;:<>#]/g, '-').replace(/[.,'"%?!]/g, '');
+}
+function diffFileName(songId, diffName) {
+  const slug = psychSlug(diffName);
+  return slug === 'normal' ? songId + '.json' : songId + '-' + slug + '.json';
 }
 function fileExt(name) {
   const m = String(name).match(/\.([a-z0-9]+)$/i);
@@ -1714,6 +1754,21 @@ function renderSingleStructure() {
       '    └── <span class="folder">' + escapeHtml(sid) + '/</span>\n' +
       '        └── <span class="audio">Inst.ogg</span> <span class="muted">(tú lo pones)</span>' +
       '</div>';
+  } else if (isMultiDiff()) {
+    const chosen = STATE.osuEntries.filter(e => e.selected !== false);
+    const slugs = chosen.map(e => diffFileName(sid, String(e.meta.Version || e.name)));
+    el.innerHTML = '<div class="structure">' +
+      '<span class="root">mods/tu-mod/</span>\n' +
+      '├── <span class="folder">weeks/</span>\n' +
+      '│   └── <span class="week">' + escapeHtml(sid) + '.json</span>\n' +
+      '├── <span class="folder">data/</span>\n' +
+      '│   └── <span class="folder">' + escapeHtml(sid) + '/</span>\n' +
+      slugs.map((f, i) => '│       ' + (i === slugs.length - 1 ? '└── ' : '├── ') +
+        '<span class="file">' + escapeHtml(f) + '</span>\n').join('') +
+      '└── <span class="folder">songs/</span>\n' +
+      '    └── <span class="folder">' + escapeHtml(sid) + '/</span>\n' +
+      (STATE.audioEntry ? '        └── <span class="audio">Inst.ogg</span>'
+        : '        └── <span class="muted">⚠ sin audio</span>') + '</div>';
   } else if (STATE.source === 'osz' || STATE.source === 'zip') {
     const audioOk = STATE.audioEntry;
     el.innerHTML = '<div class="structure">' +
@@ -1734,8 +1789,8 @@ function renderSingleStructure() {
   }
 }
 
-function generateWeekJson(songIds, opts, weekName) {
-  return JSON.stringify({
+function generateWeekJson(songIds, opts, weekName, difficulties) {
+  const week = {
     songs: songIds.map(sid => [sid, opts.player1, [49, 176, 209]]),
     weekCharacters: ["", opts.player1, opts.player2],
     weekBackground: "",
@@ -1745,7 +1800,9 @@ function generateWeekJson(songIds, opts, weekName) {
     startUnlocked: true,
     hideStoryMode: true,
     hideFreeplay: false
-  }, null, '\t');
+  };
+  if (difficulties && difficulties.length) week.difficulties = difficulties.join(', ');
+  return JSON.stringify(week, null, '\t');
 }
 
 /* ============================================================================
@@ -1870,9 +1927,13 @@ function renderDifficultyList() {
     const el = document.createElement('div');
     el.className = 'diff-item' + (i === STATE.selectedIdx ? ' active' : '');
     el.innerHTML =
+      '<div class="lead"><input type="checkbox"' + (e.selected !== false ? ' checked' : '') + '>' +
       '<div><div class="name">' + escapeHtml(m.Version || e.name) + '</div>' +
-      '<div class="small">' + escapeHtml(generatorLabel(mode, keys)) + '</div></div>' +
+      '<div class="small">' + escapeHtml(generatorLabel(mode, keys)) + '</div></div></div>' +
       '<div class="meta">' + bpm + ' BPM · ' + e.parsed.hitObjects.length + '</div>';
+    const cb = el.querySelector('input');
+    cb.addEventListener('click', (ev) => ev.stopPropagation());
+    cb.addEventListener('change', () => { e.selected = cb.checked; updateDownloadButton(); renderSingleStructure(); });
     el.addEventListener('click', () => selectOsu(i));
     list.appendChild(el);
   });
@@ -1887,9 +1948,10 @@ function selectOsu(idx) {
     el.classList.toggle('active', i === STATE.selectedIdx);
   });
   const diffName = entry.parsed.metadata.Version || 'chart';
-  $('songId').value = sanitizeName(diffName);
-  $('songName').value = entry.parsed.metadata.TitleUnicode
-    || entry.parsed.metadata.Title || diffName;
+  const songTitle = entry.parsed.metadata.TitleUnicode || entry.parsed.metadata.Title || diffName;
+  const multi = (STATE.source === 'osz' || STATE.source === 'zip') && STATE.osuEntries.length > 1;
+  $('songId').value = sanitizeName(multi ? songTitle : diffName);
+  $('songName').value = songTitle;
   renderMapInfo(entry.parsed);
   convert();
 }
@@ -1908,6 +1970,69 @@ $('btnAudio').addEventListener('click', async () => {
   }
 });
 
+
+/* ============================================================================
+   DESCARGA — TODAS LAS DIFICULTADES (.osz / .zip con varias dificultades)
+   ============================================================================ */
+function isMultiDiff() {
+  return (STATE.source === 'osz' || STATE.source === 'zip') && STATE.osuEntries.length > 1;
+}
+async function downloadAllDifficulties() {
+  const opts = readOptions();
+  const meta = STATE.parsed.metadata;
+  const songId = sanitizeName(opts.songId || meta.TitleUnicode || meta.Title || 'song');
+  const songName = opts.songName || meta.TitleUnicode || meta.Title || songId;
+  opts.songId = songId; opts.songName = songName;
+  const indent = opts.compactJson ? 0 : '\t';
+
+  const chosen = STATE.osuEntries.filter(e => e.selected !== false)
+    .sort((a, b) => a.parsed.hitObjects.length - b.parsed.hitObjects.length);
+  if (!chosen.length) { setStatus('Selecciona al menos una dificultad.', 'warn'); return; }
+
+  const files = [], names = [], problems = [], used = new Set();
+  for (const e of chosen) {
+    const base = String(e.meta.Version || e.name).replace(/,/g, ' ').trim() || 'Normal';
+    // Psych solo reconoce "Normal" (sin sufijo) si se escribe exactamente así
+    const baseName = psychSlug(base) === 'normal' ? 'Normal' : base;
+    let name = baseName, n = 2;
+    while (used.has(psychSlug(name))) name = baseName + ' ' + (n++);
+    used.add(psychSlug(name));
+
+    const { notes, uninheritedTps } = extractNotes(e.parsed, opts);
+    if (!notes.length) { problems.push(name + ': sin notas'); continue; }
+    const chart = buildChart(notes, uninheritedTps, e.parsed.timingPoints, opts, songId, songName);
+    const v = validateChart(chart);
+    if (v.errors.length) { problems.push(name + ': ' + v.errors[0]); continue; }
+
+    files.push({ name: 'data/' + songId + '/' + diffFileName(songId, name),
+      data: TEXT_ENCODER.encode(JSON.stringify(chart, null, indent)) });
+    names.push(name);
+  }
+  if (!names.length) { setStatus('No se generó ninguna dificultad. ' + escapeHtml(problems.join('; ')), 'err'); return; }
+
+  // Audio: una sola vez, compartido por todas las dificultades
+  if (STATE.audioEntry) {
+    try {
+      const result = await convertToOGG(STATE.audioEntry.data, STATE.audioEntry.name);
+      files.push({ name: 'songs/' + songId + '/Inst.ogg', data: result.data });
+      updateAudioDiagnostic({ converted: result.converted, reason: result.reason });
+    } catch (audioErr) {
+      problems.push('audio: ' + audioErr.message);
+    }
+  } else {
+    problems.push('no hay audio (sin Inst.ogg)');
+  }
+
+  files.push({ name: 'weeks/' + songId + '.json',
+    data: TEXT_ENCODER.encode(generateWeekJson([songId], opts, songId, names)) });
+
+  const zipBlob = await createZip(files);
+  downloadBlob(zipBlob, songId + '.zip');
+  setStatus((problems.length ? '⚠ ' : '✔ ') + escapeHtml(songId) + '.zip · ' + names.length +
+    ' dificultades (' + escapeHtml(names.join(', ')) + ')' +
+    (problems.length ? ' · ' + escapeHtml(problems.join('; ')) : ''), problems.length ? 'warn' : 'ok');
+}
+
 /* ============================================================================
    DESCARGA SINGLE — con conversión de audio real
    ============================================================================ */
@@ -1917,13 +2042,21 @@ $('btnDownload').addEventListener('click', async () => {
   const json = JSON.stringify(STATE.chart, null, opts.compactJson ? 0 : '\t');
   const songId = opts.songId || STATE.baseName;
 
+  if (isMultiDiff()) {
+    $('btnDownload').disabled = true;
+    try { await downloadAllDifficulties(); }
+    catch (err) { console.error(err); setStatus('✖ Error: ' + escapeHtml(err.message), 'err'); }
+    finally { updateDownloadButton(); }
+    return;
+  }
+
   if (STATE.source === 'osu') {
     downloadBlob(new Blob([json], { type: 'application/json' }), songId + '.json');
     return;
   }
 
   $('btnDownload').disabled = true;
-  $('btnDownload').textContent = '⏳ Generando…';
+  $('btnDownload').textContent = 'Generando…';
   try {
     const files = [];
     files.push({
@@ -1968,6 +2101,13 @@ function updateDownloadButton() {
     hint.style.display = 'block';
     hint.innerHTML = '<code>' + escapeHtml(STATE.baseName) + '.json</code> · ' +
       escapeHtml(gen) + ' · necesita conversión manual de audio a OGG';
+  } else if (isMultiDiff()) {
+    const n = STATE.osuEntries.filter(e => e.selected !== false).length;
+    btn.textContent = 'Descargar .zip · ' + n + (n === 1 ? ' dificultad' : ' dificultades');
+    btn.disabled = n === 0;
+    hint.style.display = 'block';
+    hint.innerHTML = '<code>data/' + escapeHtml(STATE.baseName) + '/</code> con un JSON por dificultad + ' +
+      '<code>weeks/</code> con <code>difficulties</code> + <code>Inst.ogg</code>';
   } else if (STATE.source === 'osz' || STATE.source === 'zip') {
     btn.textContent = 'Descargar .zip';
     hint.style.display = 'block';
