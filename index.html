@@ -1,822 +1,2078 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FNF Spritesheet Optimizer</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>osu! / .osz / PACK → Psych 1.0.4</title>
 <style>
-    body {
-        font-family: Arial, Helvetica, sans-serif;
-        background: #121212;
-        color: #fff;
-        text-align: center;
-        margin: 0;
-        padding: 15px;
-    }
-    .container {
-        max-width: 900px;
-        margin: auto;
-        background: #202020;
-        padding: 15px;
-        border-radius: 10px;
-    }
-    .card {
-        background: #2a2a2a;
-        padding: 15px;
-        border-radius: 10px;
-        margin: 10px 0;
-        text-align: left;
-    }
-    .card > p:first-child, .card > b {
-        text-align: center;
-        display: block;
-    }
-    button {
-        width: 100%;
-        max-width: 350px;
-        padding: 12px;
-        background: #00a8ff; 
-        border: none;
-        color: #fff;
-        font-size: 16px;
-        font-weight: bold;
-        cursor: pointer;
-        border-radius: 6px;
-        margin: 8px auto;
-        display: block;
-        transition: background 0.2s ease;
-    }
-    button:hover {
-        background: #0097e6; 
-    }
-    .btn-group {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 5px;
-        margin-top: 10px;
-    }
-    .btn-group button {
-        width: auto;
-        flex: 1 1 18%;
-        margin: 0;
-        padding: 10px;
-        font-size: 14px;
-        background: #00a8ff;
-    }
-    .btn-group button:hover {
-        background: #0097e6;
-    }
-    .btn-auto {
-        background: #0984e3 !important; 
-    }
-    .btn-auto:hover {
-        background: #74b9ff !important;
-    }
-    .btn-secondary {
-        background: #6c5ce7 !important;
-    }
-    .btn-secondary:hover {
-        background: #a29bfe !important;
-    }
-    input[type="range"] {
-        width: 100%;
-        margin-top: 10px;
-    }
-    input[type="number"] {
-        width: 80px;
-        padding: 6px;
-        border-radius: 5px;
-        border: none;
-        background: #1a1a1a;
-        color: #fff;
-        text-align: center;
-    }
-    select {
-        width: 100%;
-        padding: 8px;
-        border-radius: 5px;
-        border: none;
-        background: #1a1a1a;
-        color: #fff;
-        margin-bottom: 8px;
-    }
-    canvas {
-        max-width: 100%;
-        border: 1px solid #333;
-        margin-top: 10px;
-        border-radius: 5px;
-    }
-    p, label {
-        font-size: 15px;
-    }
-    .info-text {
-        color: #aaa;
-        font-size: 13px;
-        margin-top: 5px;
-        line-height: 1.4;
-        text-align: center;
-    }
-    .json-detect {
-        color: #55efc4;
-        font-size: 13px;
-        margin-top: 8px;
-        line-height: 1.5;
-        text-align: left;
-        background: #1a1a1a;
-        padding: 8px;
-        border-radius: 6px;
-        display: none;
-    }
-    .toggle-row {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 10px;
-        margin-top: 8px;
-    }
-    .toggle-row input[type="checkbox"] {
-        width: 20px;
-        height: 20px;
-    }
-    .adjust-row {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 15px;
-        margin-top: 8px;
-        flex-wrap: wrap;
-    }
-    .adjust-row label {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        font-size: 13px;
-        color: #aaa;
-    }
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#141414;--card:#1b1b1b;--field:#101010;--line:#303030;--line2:#454545;
+    --accent:#6ea8fe;--green:#6fcf97;--yellow:#e0b34a;--red:#e57373;
+    --txt:#e8e8e8;--mut:#9a9a9a;--mut2:#707070;
+    --mono:ui-monospace,Menlo,Consolas,monospace;
+  }
+  html,body{height:100%}
+  body{background:var(--bg);color:var(--txt);font-family:system-ui,sans-serif;
+    font-size:14px;line-height:1.5;padding:16px 12px 48px;min-height:100vh}
+  code{font-family:var(--mono);font-size:.95em}
+  .hero{max-width:1280px;margin:0 auto 16px}
+  .hero h1{font-size:18px;font-weight:700}
+  .hero p{color:var(--mut);font-size:12px;margin-top:4px}
+  main{max-width:1280px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start}
+  @media (max-width:980px){main{grid-template-columns:1fr}}
+  .col{display:flex;flex-direction:column;gap:12px;min-width:0}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:14px}
+  .card h2{font-size:13px;color:var(--mut);margin-bottom:10px;font-weight:700}
+  .drop{border:1px dashed var(--line2);border-radius:8px;padding:26px 16px;text-align:center;cursor:pointer}
+  .drop:hover,.drop.over{border-color:var(--accent)}
+  .drop strong{display:block;font-size:14px;margin-bottom:2px}
+  .drop span{font-size:12px;color:var(--mut)}
+  .status{margin-top:10px;font-size:12px;color:var(--mut);background:var(--field);
+    border:1px solid var(--line);border-radius:6px;padding:8px 10px;
+    word-break:break-word;font-family:var(--mono)}
+  .status.ok{color:var(--green)}
+  .status.err{color:var(--red);border-color:var(--red)}
+  .status.warn{color:var(--yellow)}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  @media(max-width:520px){.grid{grid-template-columns:1fr}}
+  label.fld{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--mut)}
+  input[type=text],input[type=number],select{
+    background:var(--field);border:1px solid var(--line);color:var(--txt);
+    border-radius:6px;padding:8px 10px;font-size:13px;outline:none;font-family:inherit;width:100%}
+  input:focus,select:focus{border-color:var(--accent)}
+  .checks{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px}
+  .chk{display:flex;align-items:center;gap:8px;font-size:12px;background:var(--field);
+    border:1px solid var(--line);border-radius:6px;padding:8px 10px;cursor:pointer}
+  .chk input{accent-color:var(--accent)}
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .stat{background:var(--field);border:1px solid var(--line);border-radius:6px;padding:8px 10px}
+  .stat .k{font-size:11px;color:var(--mut2)}
+  .stat .v{font-size:16px;font-weight:700;font-family:var(--mono)}
+  canvas{width:100%;display:block;border-radius:6px;background:#0b0b0b;border:1px solid var(--line)}
+  #osuPreview,#fnfPreview{height:160px}
+  #density{height:50px;margin-top:6px}
+  .preview-label{font-size:11px;color:var(--mut);margin:8px 0 4px;display:flex;justify-content:space-between}
+  .preview-label:first-child{margin-top:0}
+  .tag{font-size:11px;color:var(--mut);font-family:var(--mono)}
+  .actions{display:flex;gap:8px;flex-wrap:wrap}
+  .btn{border:1px solid var(--line2);border-radius:6px;padding:10px 14px;font-weight:600;font-size:13px;
+    cursor:pointer;font-family:inherit;flex:1;min-width:110px;background:#242424;color:var(--txt)}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#0b1220}
+  .btn:hover:not(:disabled){filter:brightness(1.15)}
+  .btn:disabled{opacity:.35;cursor:not-allowed}
+  pre#jsonPreview{max-height:180px;overflow:auto;background:#0b0b0b;border:1px solid var(--line);
+    border-radius:6px;padding:10px;font-size:11px;font-family:var(--mono);white-space:pre}
+  details summary{cursor:pointer;font-size:12px;color:var(--mut);margin-bottom:8px}
+  .structure{background:var(--field);border:1px solid var(--line);border-radius:6px;
+    padding:10px;font-family:var(--mono);font-size:11px;color:var(--mut);
+    line-height:1.7;white-space:pre;overflow-x:auto;margin-top:8px}
+  .structure .folder{color:var(--txt)}
+  .structure .file{color:var(--mut)}
+  .structure .week{color:var(--accent)}
+  .structure .audio{color:var(--yellow)}
+  .structure .muted{color:var(--mut2)}
+  .structure .root{color:var(--txt);font-weight:700}
+  .info-banner{background:var(--field);border:1px solid var(--line);border-radius:6px;
+    padding:8px 10px;font-size:12px;color:var(--mut);margin-top:8px}
+  .info-banner b{color:var(--txt)}
+  .info-banner.yellow{border-color:var(--yellow)}
+  .pack-header{display:flex;justify-content:space-between;align-items:center;gap:10px;
+    background:var(--field);border:1px solid var(--line);border-radius:6px;padding:10px 12px;margin-bottom:10px}
+  .pack-header .pt{font-size:14px;font-weight:700}
+  .pack-header .ps{font-size:11px;color:var(--mut);font-family:var(--mono)}
+  .pack-header .pacts{display:flex;gap:6px}
+  .pack-header .pacts button{background:#242424;border:1px solid var(--line2);color:var(--txt);
+    border-radius:6px;padding:5px 10px;font-size:12px;cursor:pointer;font-family:inherit}
+  .pack-list{display:flex;flex-direction:column;gap:5px;max-height:360px;overflow-y:auto}
+  .pack-row{display:flex;align-items:center;gap:9px;background:var(--field);
+    border:1px solid var(--line);border-radius:6px;padding:8px 10px;cursor:pointer}
+  .pack-row.selected{border-color:var(--accent)}
+  .pack-row.deselected{opacity:.45}
+  .pack-row input[type=checkbox]{accent-color:var(--accent);width:16px;height:16px;flex-shrink:0}
+  .pack-row .pr-info{flex:1;min-width:0}
+  .pack-row .pr-title{font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .pack-row .pr-sub{font-size:11px;color:var(--mut2);font-family:var(--mono);
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .pack-row select{font-size:11px;padding:4px 7px;max-width:160px}
+  .diff-list{display:flex;flex-direction:column;gap:6px}
+  .diff-item{display:flex;align-items:center;justify-content:space-between;
+    background:var(--field);border:1px solid var(--line);border-radius:6px;
+    padding:9px 12px;cursor:pointer;font-size:13px}
+  .diff-item.active{border-color:var(--accent)}
+  .diff-item .name{font-weight:600}
+  .diff-item .meta{font-size:11px;color:var(--mut2);font-family:var(--mono);text-align:right}
+  .info{display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px}
+  .info .row{background:var(--field);border:1px solid var(--line);border-radius:6px;padding:8px 10px;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .info .row .k{color:var(--mut2);font-size:11px}
+  .info .row .v{font-weight:600;font-family:var(--mono);overflow:hidden;text-overflow:ellipsis}
+  .gen-panel{background:var(--field);border:1px solid var(--line);border-radius:6px;
+    padding:10px 12px;margin-bottom:10px}
+  .gen-panel .gk{font-size:11px;color:var(--mut2)}
+  .gen-panel .gv{font-size:15px;font-weight:700}
+  .gen-panel .gsub{font-size:11px;color:var(--mut);font-family:var(--mono)}
+  .loader{display:inline-block;width:11px;height:11px;border-radius:50%;
+    border:2px solid var(--line2);border-top-color:var(--accent);
+    animation:spin .8s linear infinite;vertical-align:-2px;margin-right:5px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .small{font-size:11px;color:var(--mut2)}
+  .audio-box{display:flex;align-items:center;justify-content:space-between;gap:10px;
+    background:var(--field);border:1px solid var(--line);border-radius:6px;padding:10px 12px}
+  .audio-box .an{font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .audio-box .am{font-size:11px;color:var(--mut2);font-family:var(--mono)}
+  .diag-list{display:flex;flex-direction:column;gap:2px;font-family:var(--mono);font-size:12px}
+  .diag-item{display:flex;gap:8px;align-items:flex-start;padding:3px 0}
+  .diag-item.ok{color:var(--green)}
+  .diag-item.fail{color:var(--red)}
+  .diag-item .ic{flex-shrink:0;width:14px;text-align:center}
 </style>
 </head>
 <body>
 
-<h1>Spritesheet Optimizer</h1>
+<header class="hero">
+  <h1>osu! / .osz / PACK → Psych 1.0.4</h1>
+  <p>Formato <code>psych_v1</code> · notas de 4 campos · audio OGG</p>
+</header>
 
-<div class="container">
+<main>
 
-    <div class="card">
-        <p><b>1. Elegir PNG</b></p>
-        <input type="file" id="pngUpload" accept="image/png,.png,application/octet-stream">
-        <p id="fileInfo" class="info-text"></p>
-    </div>
+  <!-- COLUMNA IZQ -->
+  <div class="col">
 
-    <div class="card">
-        <p><b>2. Elegir XML</b></p>
-        <input type="file" id="xmlUpload" accept=".xml">
-    </div>
+    <section class="card">
+      <h2>1 · Entrada</h2>
+      <div class="drop" id="drop">
+        <input type="file" id="file" accept=".osu,.osz,.zip" hidden />
+        <strong>Arrastra tu .osu, .osz o PACK (.zip)</strong>
+        <span>o haz clic para seleccionar</span>
+      </div>
+      <div class="status" id="status">Esperando archivo…</div>
+    </section>
 
-    <div class="card">
-        <p><b>3. Elegir JSON (Opcional)</b></p>
-        <input type="file" id="jsonUpload" accept=".json">
-        <p class="info-text" style="margin: 0;">Actualiza automáticamente "image", "scale" y offsets de animación. Se guarda con el mismo nombre del archivo original.</p>
-        <div id="jsonDetect" class="json-detect"></div>
-    </div>
-
-    <div class="card">
-        <p><b>4. ¿Es personaje jugable?</b></p>
-        <div class="toggle-row">
-            <input type="checkbox" id="playableToggle">
-            <span id="playableLabel">false</span>
+    <section class="card" id="packCard" style="display:none">
+      <h2>Pack detectado</h2>
+      <div class="pack-header">
+        <div>
+          <div class="pt" id="packTitle">—</div>
+          <div class="ps" id="packMeta">—</div>
         </div>
-        <p class="info-text" style="margin: 5px 0 0;">Si el JSON ya trae "playable", se detecta solo. Si no, elegís vos y se agrega al exportar.</p>
-    </div>
-
-    <div class="card">
-        <p><b>Escala: <span id="scaleValue">1</span>x</b></p>
-        <input type="range" id="scale" min="0.25" max="1" step="0.05" value="1">
-        
-        <div class="btn-group">
-            <button onclick="setScale(1)">100%</button>
-            <button onclick="setScale(0.75)">75%</button>
-            <button onclick="setScale(0.5)">50%</button>
-            <button onclick="setScale(0.25)">25%</button>
-            <button onclick="autoScale()" class="btn-auto">AUTO</button>
+        <div class="pacts">
+          <button id="packSelAll" type="button">✓</button>
+          <button id="packSelNone" type="button">✗</button>
         </div>
-    </div>
-
-    <div class="card">
-        <label style="display:flex; align-items:center; gap:8px; justify-content:center;">
-            <input type="checkbox" id="lowRam" checked> <b>Low RAM Mode</b>
+      </div>
+      <div class="pack-list" id="packList"></div>
+      <div class="grid" style="margin-top:12px">
+        <label class="fld">Nombre week
+          <input type="text" id="packWeekName" value="" placeholder="osu-pack" />
         </label>
-        <p class="info-text" style="margin: 0;">Desactiva el suavizado de imagen para mejor rendimiento.</p>
-    </div>
+        <button class="btn primary" id="btnPackDownload" type="button" style="align-self:end">
+          Generar pack .zip
+        </button>
+      </div>
+      <div class="small" style="margin-top:12px">Estructura</div>
+      <div class="structure" id="packStructure"></div>
+    </section>
 
-    <div class="card">
-        <p><b>Vista previa y ajuste de frames</b></p>
-        <p class="info-text" style="margin: 0 0 8px;">Elegí un frame para ver dónde queda ubicado en el atlas escalado, y ajustá su FrameX/FrameY si se ve corrido dentro del juego.</p>
-        <select id="frameSelect"><option value="">-- Cargá PNG y XML primero --</option></select>
-        <div class="adjust-row">
-            <label>Ajuste FrameX (px)
-                <input type="number" id="adjustX" value="0" step="1">
-            </label>
-            <label>Ajuste FrameY (px)
-                <input type="number" id="adjustY" value="0" step="1">
-            </label>
+    <section class="card" id="diffCard" style="display:none">
+      <h2>2 · Dificultades</h2>
+      <div class="diff-list" id="diffList"></div>
+    </section>
+
+    <section class="card" id="audioCard" style="display:none">
+      <h2>3 · Audio</h2>
+      <div class="audio-box">
+        <div style="flex:1;min-width:0">
+          <div class="an" id="audioName">—</div>
+          <div class="am" id="audioMeta">—</div>
         </div>
-        <canvas id="previewCanvas" style="display:none;"></canvas>
-    </div>
+        <button class="btn" id="btnAudio" type="button" style="flex:0 0 auto;min-width:auto;padding:8px 12px;font-size:12px">
+          Inst.ogg
+        </button>
+      </div>
+      <div class="info-banner" id="audioConvInfo" style="display:none"></div>
+    </section>
 
-    <div class="card">
-        <p><b>Overlay Funcional: Acomodar PNG Optimizado</b></p>
-        <p class="info-text" style="margin:0 0 8px;">Arrastrá el PNG optimizado (capa superior) sobre el original para acomodarlo. Los offsets se guardan automáticamente en el JSON.</p>
-        <canvas id="overlayCanvas" style="border: 2px solid #00a8ff; cursor: grab; display:none; margin-top:10px;"></canvas>
-        <div class="adjust-row" style="margin-top:15px;">
-            <label>Offset X
-                <input type="number" id="overlayOffsetX" value="0" step="1">
-            </label>
-            <label>Offset Y
-                <input type="number" id="overlayOffsetY" value="0" step="1">
-            </label>
-            <label>Opacidad (%)
-                <input type="range" id="overlayOpacity" min="0" max="100" value="70" style="width:120px;">
-            </label>
+    <section class="card" id="optionsCard">
+      <h2>4 · Opciones</h2>
+
+      <div class="grid">
+        <label class="fld">Asignación
+          <select id="side">
+            <option value="player" selected>Jugador (4-7)</option>
+            <option value="opponent">Oponente (0-3)</option>
+            <option value="split">Ambos lados</option>
+          </select>
+        </label>
+        <label class="fld">Pasos/sección
+          <select id="steps">
+            <option value="4">4</option>
+            <option value="8">8</option>
+            <option value="16" selected>16</option>
+            <option value="32">32</option>
+          </select>
+        </label>
+        <label class="fld">Speed
+          <input type="number" id="speed" value="1.6" step="0.1" min="0.1" max="10" />
+        </label>
+        <label class="fld">Offset (ms)
+          <input type="number" id="offset" value="0" step="1" />
+        </label>
+      </div>
+
+      <div class="grid" style="margin-top:10px">
+        <label class="fld">Song ID (carpeta + .json)
+          <input type="text" id="songId" placeholder="auto desde dificultad" />
+        </label>
+        <label class="fld">Song display (campo "song")
+          <input type="text" id="songName" placeholder="auto" />
+        </label>
+        <label class="fld">Player1
+          <input type="text" id="p1" value="bf" />
+        </label>
+        <label class="fld">Player2
+          <input type="text" id="p2" value="dad" />
+        </label>
+        <label class="fld">GF Version
+          <input type="text" id="gf" value="gf" />
+        </label>
+        <label class="fld">Stage
+          <input type="text" id="stage" value="stage" />
+        </label>
+        <label class="fld">Sesgo impar
+          <select id="oddBias">
+            <option value="right" selected>Centro → Jugador</option>
+            <option value="left">Centro → Oponente</option>
+          </select>
+        </label>
+        <label class="fld">Sustain mínimo (ms)
+          <input type="number" id="minSustain" value="0" step="10" min="0" />
+        </label>
+      </div>
+
+      <div class="checks">
+        <label class="chk"><input type="checkbox" id="kiaiAlt" /> Kiai → altAnim</label>
+        <label class="chk"><input type="checkbox" id="compactJson" /> JSON compacto</label>
+      </div>
+      <div class="small" style="margin-top:8px">Siempre activo: notas de 4 campos, sliders y spinners como sustains.</div>
+      <div class="info-banner yellow" style="margin-top:10px">
+        <b>needsVoices</b> queda siempre en <code>false</code> porque este conversor no genera <code>Voices.ogg</code>.
+        Si tu canción tiene vocales separadas, agrégalas manualmente y edita el JSON.
+      </div>
+    </section>
+
+  </div>
+
+  <!-- COLUMNA DER -->
+  <div class="col">
+
+    <section class="card" id="mapInfoCard" style="display:none">
+      <h2>Info</h2>
+      <div class="info">
+        <div class="row"><div class="k">Título</div><div class="v" id="iTitle">—</div></div>
+        <div class="row"><div class="k">Artista</div><div class="v" id="iArtist">—</div></div>
+        <div class="row"><div class="k">Mapper</div><div class="v" id="iCreator">—</div></div>
+        <div class="row"><div class="k">Dificultad</div><div class="v" id="iDiff">—</div></div>
+        <div class="row"><div class="k">Modo</div><div class="v" id="iMode">—</div></div>
+        <div class="row"><div class="k">Teclas / CS</div><div class="v" id="iKeys">—</div></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Resumen</h2>
+      <div class="gen-panel" id="genPanel" style="display:none">
+        <div style="flex:1;min-width:0">
+          <div class="gk">Generado desde</div>
+          <div class="gv" id="gMode">—</div>
+          <div class="gsub" id="gSub">—</div>
         </div>
-        <button onclick="resetOverlay()" class="btn-secondary">Reset Overlay</button>
-    </div>
+      </div>
+      <div class="stats">
+        <div class="stat"><div class="k">Notas</div><div class="v" id="sTotal">—</div></div>
+        <div class="stat"><div class="k">Jugador</div><div class="v" id="sPlayer">—</div></div>
+        <div class="stat"><div class="k">Oponente</div><div class="v" id="sOpp">—</div></div>
+        <div class="stat"><div class="k">Sustains</div><div class="v" id="sSus">—</div></div>
+        <div class="stat"><div class="k">BPM</div><div class="v" id="sBpm">—</div></div>
+        <div class="stat"><div class="k">Secciones</div><div class="v" id="sSec">—</div></div>
+      </div>
+    </section>
 
-    <button onclick="optimize()" style="padding: 15px; font-size: 18px;">Optimize & Download</button>
-    <button onclick="extractFrames()" class="btn-secondary">Extraer Frames Individuales (ZIP)</button>
-    <p id="history" class="info-text"></p>
+    <section class="card">
+      <h2>Diagnóstico pre-descarga</h2>
+      <div class="diag-list" id="diagList">
+        <div class="diag-item" style="color:var(--mut2)">Carga un archivo para diagnosticar…</div>
+      </div>
+    </section>
 
-    <canvas id="canvas" style="display:none;"></canvas>
-</div>
+    <section class="card">
+      <h2>Previsualización</h2>
+      <div class="preview-label"><span>osu! original</span><span class="tag" id="osuTag">—</span></div>
+      <canvas id="osuPreview"></canvas>
+      <div class="preview-label"><span>FNF (8 col)</span><span class="tag c" id="fnfTag">—</span></div>
+      <canvas id="fnfPreview"></canvas>
+      <div class="preview-label"><span>Densidad</span><span class="tag" id="denTag">—</span></div>
+      <canvas id="density"></canvas>
+    </section>
+
+    <section class="card">
+      <h2>Exportar</h2>
+      <div class="actions">
+        <button class="btn primary" id="btnDownload" disabled>Descargar</button>
+        <button class="btn ghost" id="btnCopy" disabled>Copiar JSON</button>
+        <button class="btn ghost" id="btnReset" disabled>Reset</button>
+      </div>
+      <div class="info-banner" id="downloadHint" style="display:none"></div>
+      <div id="singleStructure"></div>
+      <div style="margin-top:12px">
+        <details>
+          <summary>Ver JSON</summary>
+          <pre id="jsonPreview">—</pre>
+        </details>
+      </div>
+    </section>
+
+  </div>
+</main>
 
 <script>
-const canvas = document.getElementById('canvas');
-const ctx = canvas.getContext('2d');
-const previewCanvas = document.getElementById('previewCanvas');
-const previewCtx = previewCanvas.getContext('2d');
-const scaleSlider = document.getElementById('scale');
-const scaleValue = document.getElementById('scaleValue');
-const fileInfo = document.getElementById('fileInfo');
-const historyText = document.getElementById('history');
-const jsonDetectEl = document.getElementById('jsonDetect');
-const playableToggle = document.getElementById('playableToggle');
-const playableLabel = document.getElementById('playableLabel');
-const frameSelect = document.getElementById('frameSelect');
-const adjustX = document.getElementById('adjustX');
-const adjustY = document.getElementById('adjustY');
-const overlayCanvas = document.getElementById('overlayCanvas');
-const overlayCtx = overlayCanvas.getContext('2d');
-const overlayOpacity = document.getElementById('overlayOpacity');
-const overlayOffsetX = document.getElementById('overlayOffsetX');
-const overlayOffsetY = document.getElementById('overlayOffsetY');
+/* ============================================================================
+   HELPERS
+   ============================================================================ */
+const $ = (id) => document.getElementById(id);
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 
-// Variables para el dragging del overlay
-let isDragging = false;
-let dragStartX = 0;
-let dragStartY = 0;
-let dragStartOffsetX = 0;
-let dragStartOffsetY = 0;
+function safeNum(n, fallback = 0) {
+  if (typeof n !== 'number' || !isFinite(n)) return fallback;
+  return n;
+}
+function r3(n) { return Math.round(safeNum(n, 0) * 1000) / 1000; }
+function rInt(n) { return Math.round(safeNum(n, 0)); }
 
-overlayOpacity.oninput = buildOverlay;
+const TEXT_ENCODER = new TextEncoder();
 
-overlayOffsetX.oninput = () => {
-    buildOverlay();
+function escapeHtml(str) {
+  return String(str ?? '').replace(/[&<>"']/g, (c) => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[c]));
+}
+function sanitizeName(s) {
+  return String(s || 'chart')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase().trim()
+    .replace(/[^a-z0-9\s\-_]/g, '')
+    .replace(/\s+/g, '-').replace(/-+/g, '-')
+    .replace(/^-|-$/g, '') || 'chart';
+}
+function fileExt(name) {
+  const m = String(name).match(/\.([a-z0-9]+)$/i);
+  return m ? m[1].toLowerCase() : '';
+}
+function fmtBytes(b) {
+  if (b < 1024) return b + ' B';
+  if (b < 1024 * 1024) return (b / 1024).toFixed(1) + ' KB';
+  return (b / (1024 * 1024)).toFixed(2) + ' MB';
+}
+function downloadBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+function readAsText(file) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(String(r.result).replace(/^\uFEFF/, ''));
+    r.onerror = () => rej(new Error('No se pudo leer'));
+    r.readAsText(file, 'utf-8');
+  });
+}
+function readAsBuffer(file) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(r.result);
+    r.onerror = () => rej(new Error('No se pudo leer'));
+    r.readAsArrayBuffer(file);
+  });
+}
+
+/* ============================================================================
+   ZIP READER
+   ============================================================================ */
+async function unzip(buffer) {
+  const view = new DataView(buffer);
+  const bytes = new Uint8Array(buffer);
+  let eocd = -1;
+  const minEocd = Math.max(0, bytes.length - 65558);
+  for (let i = bytes.length - 22; i >= minEocd; i--) {
+    if (view.getUint32(i, true) === 0x06054b50) { eocd = i; break; }
+  }
+  if (eocd < 0) throw new Error('ZIP inválido (falta EOCD)');
+  const totalEntries = view.getUint16(eocd + 10, true);
+  const cdOffset = view.getUint32(eocd + 16, true);
+  const decoder = new TextDecoder('utf-8');
+  const entries = [];
+  let p = cdOffset;
+  for (let i = 0; i < totalEntries; i++) {
+    if (p + 46 > bytes.length || view.getUint32(p, true) !== 0x02014b50) break;
+    const method = view.getUint16(p + 10, true);
+    const compSize = view.getUint32(p + 20, true);
+    const fnLen = view.getUint16(p + 28, true);
+    const extraLen = view.getUint16(p + 30, true);
+    const cmtLen = view.getUint16(p + 32, true);
+    const localOff = view.getUint32(p + 42, true);
+    const name = decoder.decode(bytes.subarray(p + 46, p + 46 + fnLen));
+    entries.push({ name, method, compSize, localOff });
+    p += 46 + fnLen + extraLen + cmtLen;
+  }
+  const files = [];
+  for (const e of entries) {
+    if (e.name.endsWith('/')) continue;
+    try {
+      const data = await extractZipEntry(view, bytes, e);
+      files.push({ name: e.name, data });
+    } catch (err) { console.warn('Skip', e.name, err); }
+  }
+  return files;
+}
+async function extractZipEntry(view, bytes, entry) {
+  const lo = entry.localOff;
+  if (view.getUint32(lo, true) !== 0x04034b50) throw new Error('Header inválido');
+  const fnLen = view.getUint16(lo + 26, true);
+  const extraLen = view.getUint16(lo + 28, true);
+  const dataStart = lo + 30 + fnLen + extraLen;
+  const compData = bytes.subarray(dataStart, dataStart + entry.compSize);
+  if (entry.method === 0) {
+    const out = new Uint8Array(compData.length); out.set(compData); return out;
+  }
+  if (entry.method === 8) {
+    if (typeof DecompressionStream === 'undefined') throw new Error('Navegador sin DecompressionStream');
+    const ds = new DecompressionStream('deflate-raw');
+    const stream = new Blob([compData]).stream().pipeThrough(ds);
+    const ab = await new Response(stream).arrayBuffer();
+    return new Uint8Array(ab);
+  }
+  throw new Error('Método no soportado: ' + entry.method);
+}
+
+/* ============================================================================
+   ZIP WRITER
+   ============================================================================ */
+const CRC_TABLE = (() => {
+  const t = new Uint32Array(256);
+  for (let i = 0; i < 256; i++) {
+    let c = i;
+    for (let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+    t[i] = c;
+  }
+  return t;
+})();
+function crc32(data) {
+  let crc = 0xFFFFFFFF;
+  for (let i = 0; i < data.length; i++) crc = (crc >>> 8) ^ CRC_TABLE[(crc ^ data[i]) & 0xFF];
+  return (crc ^ 0xFFFFFFFF) >>> 0;
+}
+async function deflateRaw(data) {
+  if (typeof CompressionStream === 'undefined') return null;
+  try {
+    const cs = new CompressionStream('deflate-raw');
+    const stream = new Blob([data]).stream().pipeThrough(cs);
+    const ab = await new Response(stream).arrayBuffer();
+    return new Uint8Array(ab);
+  } catch { return null; }
+}
+async function createZip(files, onProgress) {
+  const entries = [];
+  let offset = 0, idx = 0;
+  for (const f of files) {
+    const nameBytes = TEXT_ENCODER.encode(f.name);
+    const crc = crc32(f.data);
+    const uncompSize = f.data.length;
+    let compData = f.data, method = 0;
+    if (uncompSize > 128) {
+      const compressed = await deflateRaw(f.data);
+      if (compressed && compressed.length < uncompSize) {
+        compData = compressed; method = 8;
+      }
+    }
+    entries.push({ name: f.name, nameBytes, crc, method,
+      compSize: compData.length, uncompSize, offset, compData });
+    offset += 30 + nameBytes.length + compData.length;
+    idx++;
+    if (onProgress) onProgress(idx, files.length);
+  }
+  const parts = [];
+  for (const e of entries) {
+    const h = new Uint8Array(30 + e.nameBytes.length);
+    const v = new DataView(h.buffer);
+    v.setUint32(0, 0x04034b50, true);
+    v.setUint16(4, 20, true);
+    v.setUint16(6, 0x0800, true);
+    v.setUint16(8, e.method, true);
+    v.setUint32(14, e.crc, true);
+    v.setUint32(18, e.compSize, true);
+    v.setUint32(22, e.uncompSize, true);
+    v.setUint16(26, e.nameBytes.length, true);
+    h.set(e.nameBytes, 30);
+    parts.push(h, e.compData);
+  }
+  const cdStart = offset;
+  let cdSize = 0;
+  for (const e of entries) {
+    const c = new Uint8Array(46 + e.nameBytes.length);
+    const v = new DataView(c.buffer);
+    v.setUint32(0, 0x02014b50, true);
+    v.setUint16(4, 20, true);
+    v.setUint16(6, 20, true);
+    v.setUint16(8, 0x0800, true);
+    v.setUint16(10, e.method, true);
+    v.setUint32(16, e.crc, true);
+    v.setUint32(20, e.compSize, true);
+    v.setUint32(24, e.uncompSize, true);
+    v.setUint16(28, e.nameBytes.length, true);
+    v.setUint32(42, e.offset, true);
+    c.set(e.nameBytes, 46);
+    parts.push(c); cdSize += c.length;
+  }
+  const eocd = new Uint8Array(22);
+  const ev = new DataView(eocd.buffer);
+  ev.setUint32(0, 0x06054b50, true);
+  ev.setUint16(8, entries.length, true);
+  ev.setUint16(10, entries.length, true);
+  ev.setUint32(12, cdSize, true);
+  ev.setUint32(16, cdStart, true);
+  parts.push(eocd);
+  return new Blob(parts, { type: 'application/zip' });
+}
+
+/* ============================================================================
+   PARSER .OSU
+   ============================================================================ */
+function parseOsu(text) {
+  const out = { formatVersion: 0, general: {}, editor: {}, metadata: {}, difficulty: {},
+    events: [], timingPoints: [], hitObjects: [] };
+  let section = '';
+  for (const raw of text.split(/\r?\n/)) {
+    const line = raw.trim();
+    if (!line || line.startsWith('//')) continue;
+    if (out.formatVersion === 0 && /^osu file format v\d+$/i.test(line)) {
+      const m = line.match(/v(\d+)/); if (m) out.formatVersion = parseInt(m[1], 10);
+      continue;
+    }
+    if (line.startsWith('[') && line.endsWith(']')) {
+      section = line.slice(1, -1).toLowerCase(); continue;
+    }
+    if (section === 'general' || section === 'editor' ||
+        section === 'metadata' || section === 'difficulty') {
+      const idx = line.indexOf(':'); if (idx === -1) continue;
+      out[section][line.slice(0, idx).trim()] = line.slice(idx + 1).trim();
+      continue;
+    }
+    if (section === 'events') { out.events.push(line); continue; }
+    if (section === 'timingpoints') {
+      const p = line.split(',');
+      if (p.length < 2) continue;
+      const time = parseFloat(p[0]), beatLength = parseFloat(p[1]);
+      if (!isFinite(time) || !isFinite(beatLength) || beatLength === 0) continue;
+      let uninherited;
+      if (p.length > 6 && p[6] !== '') uninherited = p[6].trim() === '1';
+      else uninherited = beatLength > 0;
+      const effects = p.length > 7 ? (parseInt(p[7], 10) || 0) : 0;
+      out.timingPoints.push({ time, beatLength, uninherited, effects, kiai: (effects & 1) !== 0 });
+      continue;
+    }
+    if (section === 'hitobjects') {
+      const p = line.split(',');
+      if (p.length < 5) continue;
+      const x = parseFloat(p[0]), y = parseFloat(p[1]), time = parseFloat(p[2]);
+      const type = parseInt(p[3], 10) || 0, hitSound = parseInt(p[4], 10) || 0;
+      if (!isFinite(x) || !isFinite(y) || !isFinite(time)) continue;
+      const obj = { x, y, time, type, hitSound, endTime: null, length: 0, slides: 1,
+        isCircle: (type & 1) !== 0, isSlider: (type & 2) !== 0,
+        isSpinner: (type & 8) !== 0, isHold: (type & 128) !== 0 };
+      if (obj.isHold) {
+        const seg = (p[5] || '').split(':');
+        const et = parseFloat(seg[0]); if (isFinite(et)) obj.endTime = et;
+      } else if (obj.isSpinner) {
+        const et = parseFloat(p[5]); if (isFinite(et)) obj.endTime = et;
+      } else if (obj.isSlider) {
+        obj.slides = parseInt(p[6], 10) || 1;
+        obj.length = (parseFloat(p[7]) || 0) * obj.slides;
+      }
+      out.hitObjects.push(obj);
+    }
+  }
+  out.timingPoints.sort((a, b) => a.time - b.time);
+  out.hitObjects.sort((a, b) => a.time - b.time);
+  return out;
+}
+
+/* ============================================================================
+   HELPERS MUSICALES
+   ============================================================================ */
+function bpmAt(tps, time) {
+  if (!tps.length) return 120;
+  let bpm = 60000 / tps[0].beatLength;
+  for (const t of tps) { if (t.time <= time) bpm = 60000 / t.beatLength; else break; }
+  if (!isFinite(bpm) || bpm <= 0) return 120;
+  return bpm;
+}
+function svAt(allTps, time) {
+  let sv = 1;
+  for (const t of allTps) {
+    if (t.time > time) continue;
+    if (t.uninherited) sv = 1;
+    else { const v = -100 / t.beatLength; if (isFinite(v) && v > 0) sv = v; }
+  }
+  return isFinite(sv) && sv > 0 ? sv : 1;
+}
+function kiaiAt(allTps, time) {
+  let k = false;
+  for (const t of allTps) { if (t.time > time) break; k = !!t.kiai; }
+  return k;
+}
+function findSectionIndex(sections, time) {
+  let lo = 0, hi = sections.length - 1, ans = 0;
+  while (lo <= hi) {
+    const mid = (lo + hi) >> 1;
+    if (sections[mid].time <= time) { ans = mid; lo = mid + 1; }
+    else hi = mid - 1;
+  }
+  return ans;
+}
+function detectMode(general) {
+  const m = parseInt(general.Mode || '0', 10);
+  switch (m) {
+    case 0: return { id: 0, name: 'osu!standard', short: 'std' };
+    case 1: return { id: 1, name: 'osu!taiko', short: 'taiko' };
+    case 2: return { id: 2, name: 'osu!catch', short: 'catch' };
+    case 3: return { id: 3, name: 'osu!mania', short: 'mania' };
+    default: return { id: m, name: 'modo ' + m, short: 'mode' + m };
+  }
+}
+function detectKeys(difficulty, mode) {
+  const cs = parseFloat(difficulty.CircleSize);
+  if (mode.id === 3) return clamp(Math.round(safeNum(cs, 4)), 1, 18);
+  if (mode.id === 1) return 2;
+  return 4;
+}
+function generatorLabel(mode, keys) {
+  if (mode.id === 3) return 'osu!mania ' + keys + 'K';
+  if (mode.id === 1) return 'osu!taiko (2 carriles)';
+  if (mode.id === 0) return 'osu!standard (4 carriles)';
+  if (mode.id === 2) return 'osu!catch (4 carriles)';
+  return mode.name;
+}
+function mapColumnSimple(c, keys, side) {
+  if (keys <= 0) return 4;
+  if (keys === 1) return side === 'opponent' ? 0 : 4;
+  if (side === 'player') {
+    if (keys <= 4) return 4 + Math.min(c, 3);
+    return 4 + Math.round(c * 3 / (keys - 1));
+  }
+  if (side === 'opponent') {
+    if (keys <= 4) return Math.min(c, 3);
+    return Math.round(c * 3 / (keys - 1));
+  }
+  return 4;
+}
+function mapColumns(c, keys, side) {
+  if (side === 'split') {
+    return [mapColumnSimple(c, keys, 'opponent'), mapColumnSimple(c, keys, 'player')];
+  }
+  return [mapColumnSimple(c, keys, side)];
+}
+
+/* ============================================================================
+   EXTRACCIÓN DE NOTAS — blindaje numérico total
+   ============================================================================ */
+function extractNotes(osu, opts) {
+  const mode = detectMode(osu.general);
+  const keys = detectKeys(osu.difficulty, mode);
+  const sliderMult = safeNum(parseFloat(osu.difficulty.SliderMultiplier), 1.4);
+  const isMania = mode.id === 3;
+  const uninheritedTps = osu.timingPoints.filter(t => t.uninherited);
+  const allTps = osu.timingPoints;
+  const notes = [], osuNotes = [];
+
+  for (const ho of osu.hitObjects) {
+    if (!isFinite(ho.time) || !isFinite(ho.x)) continue;
+
+    let osuCol;
+    if (isMania) osuCol = clamp(Math.floor(ho.x * keys / 512), 0, keys - 1);
+    else if (mode.id === 1) {
+      const isKat = (ho.hitSound & 2) !== 0 || (ho.hitSound & 8) !== 0;
+      osuCol = isKat ? 1 : 0;
+    } else osuCol = clamp(Math.floor(ho.x / 512 * 4), 0, 3);
+
+    let sustain = 0;
+    if (ho.isHold) {
+      if (ho.endTime != null && isFinite(ho.endTime))
+        sustain = Math.max(0, ho.endTime - ho.time);
+    } else if (ho.isSpinner) {
+      if (ho.endTime != null && isFinite(ho.endTime))
+        sustain = Math.max(0, ho.endTime - ho.time);
+    } else if (ho.isSlider && ho.length > 0 && isFinite(ho.length)) {
+      const bpm = bpmAt(uninheritedTps, ho.time);
+      const sv = svAt(allTps, ho.time);
+      const denom = 100 * sliderMult * sv;
+      if (denom > 0) {
+        const beats = ho.length / denom;
+        const s = beats * 60000 / bpm;
+        if (isFinite(s) && s > 0) sustain = s;
+      }
+    }
+    if (sustain > 0 && sustain < opts.minSustain) sustain = 0;
+
+    const rawTime = ho.time + opts.offset;
+    if (!isFinite(rawTime)) continue;
+    const finalTime = r3(rawTime);
+    const finalSus = rInt(sustain);
+
+    for (const data of mapColumns(osuCol, keys, opts.side)) {
+      const safeData = clamp(Math.round(safeNum(data, 4)), 0, 7);
+      notes.push({ time: finalTime, data: safeData, sustain: finalSus });
+    }
+    osuNotes.push({ time: finalTime, col: clamp(Math.round(safeNum(osuCol, 0)), 0, keys - 1),
+      sustain: finalSus });
+  }
+
+  notes.sort((a, b) => (a.time - b.time) || (a.data - b.data));
+  osuNotes.sort((a, b) => (a.time - b.time) || (a.col - b.col));
+  return { notes, osuNotes, uninheritedTps, mode, keys, isMania };
+}
+
+/* ============================================================================
+   BUILD CHART — psych_v1, notas de 4 campos [time, data, sustain, noteType]
+   ---------------------------------------------------------------------------
+   CRÍTICO: Psych 1.0.4 createNote() accede a note[3] sin null-check.
+   Toda nota DEBE tener 4 elementos: [time, data, sustain, noteType]
+   ============================================================================ */
+function buildChart(notes, uninheritedTps, allTps, opts, songId, songDisplay) {
+  const gridStart = safeNum(uninheritedTps.length ? uninheritedTps[0].time : 0, 0);
+  const gridEnd = notes.length
+    ? notes[notes.length - 1].time + (notes[notes.length - 1].sustain || 0)
+    : gridStart + 2000;
+
+  const autoBeats = opts.lengthInSteps / 4;
+  const sectionBeats = safeNum(opts.secBeatsMode === 'auto' ? autoBeats : opts.secBeatsMode, 4);
+
+  const sections = [];
+  let cursor = gridStart, guard = 0;
+  const MAX = 500000;
+  while (cursor <= gridEnd + 1 && guard++ < MAX) {
+    const bpm = bpmAt(uninheritedTps, cursor);
+    const durMs = (60000 / bpm) * sectionBeats;
+    if (!isFinite(durMs) || durMs <= 0) break;
+    sections.push({ time: cursor, notes: [] });
+    cursor += durMs;
+  }
+  if (!sections.length) sections.push({ time: 0, notes: [] });
+
+  for (const n of notes) {
+    const idx = clamp(findSectionIndex(sections, n.time), 0, sections.length - 1);
+    sections[idx].notes.push(n);
+  }
+
+  let prevMust = false;
+  let prevBpm = null;
+
+  const outSections = sections.map((s) => {
+    const playerCount = s.notes.filter(n => n.data >= 4).length;
+    const oppCount = s.notes.length - playerCount;
+    let must;
+    if (s.notes.length === 0) must = prevMust;
+    else must = playerCount >= oppCount && playerCount > 0;
+    prevMust = must;
+
+    const sectionBpm = r3(bpmAt(uninheritedTps, s.time));
+    const changeBPM = prevBpm !== null && Math.abs(sectionBpm - prevBpm) > 0.001;
+    prevBpm = sectionBpm;
+
+    // ★ NOTAS DE 4 CAMPOS: [time, data, sustain, noteType]
+    const safeNotes = s.notes.map(n => [
+      safeNum(r3(n.time), 0),                          // [0] time: Float finito
+      clamp(Math.round(safeNum(n.data, 4)), 0, 7),     // [1] data: Int 0-7
+      Math.max(0, rInt(n.sustain)),                     // [2] sustain: Float >= 0
+      ""                                                // [3] noteType: String (vacío)
+    ]);
+
+    return {
+      sectionNotes: safeNotes,
+      sectionBeats: sectionBeats,
+      mustHitSection: must,
+      bpm: sectionBpm,
+      changeBPM: changeBPM,
+      altAnim: opts.kiaiAlt ? kiaiAt(allTps, s.time) : false,
+      gfSection: false
+    };
+  });
+
+  const songBpm = r3(bpmAt(uninheritedTps, gridStart));
+
+  return {
+    song: songDisplay || songId,
+    notes: outSections,
+    events: [],
+    bpm: songBpm,
+    needsVoices: false,          // ★ SIEMPRE false: no generamos Voices.ogg
+    speed: safeNum(opts.speed, 1.6),
+    offset: rInt(opts.offset),
+    player1: opts.player1,
+    player2: opts.player2,
+    gfVersion: opts.gfVersion,
+    stage: opts.stage || 'stage',
+    format: 'psych_v1'
+  };
+}
+
+/* ============================================================================
+   VALIDACIÓN DEL CHART — contra el formato real de Psych 1.0.4
+   ============================================================================ */
+function validateChart(chart) {
+  const errors = [];
+  const checks = [];
+
+  function check(label, fn) {
+    try {
+      const result = fn();
+      if (result === true) checks.push({ ok: true, label });
+      else { checks.push({ ok: false, label: label + ' → ' + result }); errors.push(label + ': ' + result); }
+    } catch (e) {
+      checks.push({ ok: false, label: label + ' → ' + e.message });
+      errors.push(label + ': ' + e.message);
+    }
+  }
+
+  check('notes existe y es array', () => {
+    if (!chart.notes) return 'notes es null/undefined';
+    if (!Array.isArray(chart.notes)) return 'notes no es array';
+    if (chart.notes.length === 0) return 'notes está vacío';
+    return true;
+  });
+
+  check('bpm es finito y > 0', () => {
+    if (typeof chart.bpm !== 'number' || !isFinite(chart.bpm) || chart.bpm <= 0)
+      return 'bpm inválido: ' + chart.bpm;
+    return true;
+  });
+
+  check('speed es finito y > 0', () => {
+    if (typeof chart.speed !== 'number' || !isFinite(chart.speed) || chart.speed <= 0)
+      return 'speed inválido: ' + chart.speed;
+    return true;
+  });
+
+  check('needsVoices es false', () => {
+    if (chart.needsVoices !== false) return 'needsVoices debe ser false, es: ' + chart.needsVoices;
+    return true;
+  });
+
+  check('format = psych_v1', () => {
+    if (chart.format !== 'psych_v1') return 'format debe ser psych_v1, es: ' + chart.format;
+    return true;
+  });
+
+  if (!Array.isArray(chart.notes)) return { checks, errors };
+
+  let totalNotes = 0;
+  let sectionErrors = 0;
+
+  chart.notes.forEach((sec, si) => {
+    if (!sec || typeof sec !== 'object') {
+      sectionErrors++;
+      errors.push('Sección ' + si + ' no es objeto');
+      return;
+    }
+
+    if (typeof sec.sectionBeats !== 'number' || !isFinite(sec.sectionBeats) || sec.sectionBeats <= 0) {
+      sectionErrors++;
+      errors.push('Sección ' + si + ' sectionBeats inválido: ' + sec.sectionBeats);
+    }
+    if (typeof sec.mustHitSection !== 'boolean') {
+      sectionErrors++;
+      errors.push('Sección ' + si + ' mustHitSection no es bool');
+    }
+    if (typeof sec.changeBPM !== 'boolean') {
+      sectionErrors++;
+      errors.push('Sección ' + si + ' changeBPM no es bool');
+    }
+    if (typeof sec.altAnim !== 'boolean') {
+      sectionErrors++;
+      errors.push('Sección ' + si + ' altAnim no es bool');
+    }
+    if (typeof sec.gfSection !== 'boolean') {
+      sectionErrors++;
+      errors.push('Sección ' + si + ' gfSection no es bool');
+    }
+    if (typeof sec.bpm !== 'number' || !isFinite(sec.bpm) || sec.bpm <= 0) {
+      sectionErrors++;
+      errors.push('Sección ' + si + ' bpm inválido: ' + sec.bpm);
+    }
+
+    if (!Array.isArray(sec.sectionNotes)) {
+      sectionErrors++;
+      errors.push('Sección ' + si + ' sectionNotes no es array');
+      return;
+    }
+
+    sec.sectionNotes.forEach((note, ni) => {
+      totalNotes++;
+      if (!Array.isArray(note)) {
+        sectionErrors++;
+        errors.push('Sección ' + si + ' nota ' + ni + ' no es array');
+        return;
+      }
+      if (note.length < 4) {
+        sectionErrors++;
+        errors.push('Sección ' + si + ' nota ' + ni + ' tiene ' + note.length + ' campos (deben ser 4)');
+        return;
+      }
+      if (typeof note[0] !== 'number' || !isFinite(note[0])) {
+        sectionErrors++;
+        errors.push('Sección ' + si + ' nota ' + ni + ' time inválido: ' + note[0]);
+      }
+      if (typeof note[1] !== 'number' || !Number.isInteger(note[1]) || note[1] < 0 || note[1] > 7) {
+        sectionErrors++;
+        errors.push('Sección ' + si + ' nota ' + ni + ' data inválido: ' + note[1]);
+      }
+      if (typeof note[2] !== 'number' || !isFinite(note[2]) || note[2] < 0) {
+        sectionErrors++;
+        errors.push('Sección ' + si + ' nota ' + ni + ' sustain inválido: ' + note[2]);
+      }
+      if (typeof note[3] !== 'string') {
+        sectionErrors++;
+        errors.push('Sección ' + si + ' nota ' + ni + ' noteType no es string: ' + typeof note[3]);
+      }
+    });
+  });
+
+  checks.push({ ok: sectionErrors === 0, label: 'Validación de secciones/notas: ' + sectionErrors + ' errores' });
+  checks.push({ ok: totalNotes > 0, label: totalNotes + ' notas en ' + chart.notes.length + ' secciones' });
+
+  return { checks, errors, totalNotes };
+}
+
+/* ============================================================================
+   CONVERSIÓN DE AUDIO — ffmpeg.wasm
+   ---------------------------------------------------------------------------
+   Psych 1.0.4 solo reproduce OGG Vorbis real.
+   Si el audio original es .ogg → se copia directamente.
+   Si es .mp3/.wav → se convierte con ffmpeg.wasm.
+   ============================================================================ */
+let ffmpegInstance = null;
+
+async function loadFFmpeg() {
+  if (ffmpegInstance) return ffmpegInstance;
+
+  // Los scripts UMD exponen FFmpegWASM.FFmpeg y FFmpegUtil
+  const FFmpegClass = window.FFmpegWASM && window.FFmpegWASM.FFmpeg;
+  if (!FFmpegClass || !window.FFmpegUtil) {
+    throw new Error('ffmpeg.wasm no se cargó. Revisa tu conexión a internet y recarga la página.');
+  }
+
+  setStatus('<span class="loader"></span> Cargando motor de audio (ffmpeg.wasm)…');
+
+  const { toBlobURL } = window.FFmpegUtil;
+  const coreBase = 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd';
+  const wrapBase = 'https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.6/dist/umd';
+
+  const coreURL = await toBlobURL(coreBase + '/ffmpeg-core.js', 'text/javascript');
+  const wasmURL = await toBlobURL(coreBase + '/ffmpeg-core.wasm', 'application/wasm');
+  // El navegador no deja crear un Worker desde otro origen (ni desde un archivo local),
+  // así que el script del worker se descarga y se usa como blob.
+  const workerURL = await toBlobURL(wrapBase + '/814.ffmpeg.js', 'text/javascript');
+
+  // Redirige solo el Worker de ffmpeg al blob, como worker clásico
+  const NativeWorker = window.Worker;
+  window.Worker = function (url, opts) {
+    const u = String(url);
+    if (u.endsWith('/814.ffmpeg.js') || u === workerURL) {
+      return new NativeWorker(workerURL);
+    }
+    return new NativeWorker(url, opts);
+  };
+  window.Worker.prototype = NativeWorker.prototype;
+
+  try {
+    const ff = new FFmpegClass();
+    await ff.load({ coreURL, wasmURL });
+    ffmpegInstance = ff;
+    return ff;
+  } finally {
+    window.Worker = NativeWorker;
+  }
+}
+
+/**
+ * Convierte un Uint8Array de audio (mp3/wav) a OGG Vorbis.
+ * Si ya es OGG, devuelve los mismos bytes sin re-encodear.
+ */
+async function convertToOGG(audioBytes, originalName) {
+  const ext = fileExt(originalName);
+
+  // Ya es OGG → copia directa
+  if (ext === 'ogg') {
+    // Verificar que sea OGG Vorbis real (magic bytes "OggS")
+    if (audioBytes.length >= 4 &&
+        audioBytes[0] === 0x4F && audioBytes[1] === 0x67 &&
+        audioBytes[2] === 0x67 && audioBytes[3] === 0x53) {
+      return { data: audioBytes, converted: false, reason: 'ya era OGG Vorbis' };
+    }
+    throw new Error('El archivo tiene extensión .ogg pero no es un OGG Vorbis válido.');
+  }
+
+  // MP3 / WAV → convertir
+  if (ext !== 'mp3' && ext !== 'wav' && ext !== 'm4a' && ext !== 'flac') {
+    throw new Error('Formato de audio no soportado: .' + ext + '. Solo se aceptan .ogg, .mp3, .wav, .m4a, .flac');
+  }
+
+  const ffmpeg = await loadFFmpeg();
+  setStatus('<span class="loader"></span> Convirtiendo audio a OGG Vorbis… (puede tardar)');
+
+  const inputName = 'input.' + ext;
+  const outputName = 'output.ogg';
+
+  await ffmpeg.writeFile(inputName, audioBytes);
+  const code = await ffmpeg.exec([
+    '-i', inputName,
+    '-vn',
+    '-c:a', 'libvorbis',
+    '-q:a', '6',
+    '-ar', '44100',
+    '-ac', '2',
+    outputName
+  ]);
+  if (code !== 0) throw new Error('ffmpeg no pudo convertir el audio (código ' + code + ').');
+
+  const outputData = await ffmpeg.readFile(outputName);
+
+  await ffmpeg.deleteFile(inputName).catch(() => {});
+  await ffmpeg.deleteFile(outputName).catch(() => {});
+
+  return { data: outputData, converted: true, reason: ext + ' → OGG Vorbis' };
+}
+
+/* ============================================================================
+   ESTADO
+   ============================================================================ */
+const STATE = {
+  source: null, sourceName: '',
+  osuEntries: [], audioEntry: null, selectedIdx: 0,
+  parsed: null, chart: null, preview: null,
+  baseName: 'chart', stats: null,
+  packSongs: [], packName: '',
+  audioConverted: null,   // { data, converted, reason }
+  validation: null
 };
 
-overlayOffsetY.oninput = () => {
-    buildOverlay();
-};
-
-function resetOverlay() {
-    overlayOffsetX.value = 0;
-    overlayOffsetY.value = 0;
-    overlayOpacity.value = 70;
-    buildOverlay();
+function readOptions() {
+  const gfRaw = $('gf').value.trim();
+  const songIdRaw = $('songId').value.trim();
+  const songNameRaw = $('songName').value.trim();
+  return {
+    side: $('side').value,
+    lengthInSteps: parseInt($('steps').value, 10) || 16,
+    speed: parseFloat($('speed').value) || 1.6,
+    offset: parseFloat($('offset').value) || 0,
+    player1: $('p1').value.trim() || 'bf',
+    player2: $('p2').value.trim() || 'dad',
+    gfVersion: gfRaw === '' ? 'gf' : gfRaw,
+    stage: $('stage').value.trim() || 'stage',
+    songId: songIdRaw,
+    songName: songNameRaw,
+    kiaiAlt: $('kiaiAlt').checked,
+    minSustain: Math.max(0, parseFloat($('minSustain').value) || 0),
+    compactJson: $('compactJson').checked,
+    secBeatsMode: 'auto'
+  };
 }
 
-// Superpone el original y el optimizado con dragging
-function buildOverlay() {
-    if (!img.src) return;
-    const scale = parseFloat(scaleSlider.value);
-    const lowRam = document.getElementById('lowRam').checked;
+/* ============================================================================
+   CONVERSIÓN SINGLE
+   ============================================================================ */
+function convert() {
+  if (!STATE.parsed || !STATE.parsed.hitObjects.length) return;
+  const opts = readOptions();
 
-    overlayCanvas.style.display = "block";
-    overlayCanvas.width = img.width;
-    overlayCanvas.height = img.height;
+  if (!opts.songId) {
+    const diffName = STATE.parsed.metadata.Version || STATE.baseName;
+    opts.songId = sanitizeName(diffName);
+    $('songId').value = opts.songId;
+  }
+  if (!opts.songName) {
+    opts.songName = STATE.parsed.metadata.TitleUnicode
+      || STATE.parsed.metadata.Title || opts.songId;
+    $('songName').value = opts.songName;
+  }
+  STATE.baseName = opts.songId;
 
-    overlayCtx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
-    overlayCtx.globalAlpha = 1;
-    overlayCtx.imageSmoothingEnabled = !lowRam;
-    overlayCtx.drawImage(img, 0, 0, img.width, img.height);
+  const { notes, osuNotes, uninheritedTps, mode, keys, isMania } =
+    extractNotes(STATE.parsed, opts);
+  if (!notes.length) { setStatus('Sin notas convertibles.', 'err'); return; }
 
-    // Simula la version optimizada: reduce y luego reagranda al tamaño original
-    const smallCanvas = document.createElement('canvas');
-    smallCanvas.width = Math.round(img.width * scale);
-    smallCanvas.height = Math.round(img.height * scale);
-    const smallCtx = smallCanvas.getContext('2d');
-    smallCtx.imageSmoothingEnabled = !lowRam;
-    smallCtx.drawImage(img, 0, 0, smallCanvas.width, smallCanvas.height);
+  STATE.chart = buildChart(notes, uninheritedTps, STATE.parsed.timingPoints,
+    opts, opts.songId, opts.songName);
 
-    const offX = parseInt(overlayOffsetX.value) || 0;
-    const offY = parseInt(overlayOffsetY.value) || 0;
+  // Validación
+  STATE.validation = validateChart(STATE.chart);
+  renderDiagnostic(STATE.validation, STATE.audioConverted);
 
-    overlayCtx.globalAlpha = (parseInt(overlayOpacity.value) || 0) / 100;
-    overlayCtx.drawImage(smallCanvas, 0, 0, smallCanvas.width, smallCanvas.height, offX, offY, img.width, img.height);
-    overlayCtx.globalAlpha = 1;
+  const total = notes.length;
+  const player = notes.filter(n => n.data >= 4).length;
+  const opp = total - player;
+  const sus = notes.filter(n => n.sustain > 0).length;
+  const bpms = uninheritedTps.map(t => r3(60000 / t.beatLength)).filter(b => isFinite(b));
+  const minBpm = bpms.length ? Math.min(...bpms) : 120;
+  const maxBpm = bpms.length ? Math.max(...bpms) : 120;
+  const colUsage = [0,0,0,0,0,0,0,0];
+  for (const n of notes) colUsage[n.data]++;
+  const maxCol = Math.max(1, ...colUsage);
+  const genLabel = generatorLabel(mode, keys);
 
-    // Dibuja líneas de guía en el centro para alinear mejor
-    overlayCtx.strokeStyle = "#55efc4";
-    overlayCtx.lineWidth = 1;
-    overlayCtx.setLineDash([5, 5]);
-    overlayCtx.beginPath();
-    overlayCtx.moveTo(overlayCanvas.width / 2, 0);
-    overlayCtx.lineTo(overlayCanvas.width / 2, overlayCanvas.height);
-    overlayCtx.stroke();
-    overlayCtx.beginPath();
-    overlayCtx.moveTo(0, overlayCanvas.height / 2);
-    overlayCtx.lineTo(overlayCanvas.width, overlayCanvas.height / 2);
-    overlayCtx.stroke();
-    overlayCtx.setLineDash([]);
+  STATE.stats = { total, player, opp, sus, minBpm, maxBpm,
+    sections: STATE.chart.notes.length, colUsage, maxCol,
+    mode, keys, isMania, genLabel };
+
+  renderStats(STATE.stats);
+  renderGenerator(mode, genLabel, keys, isMania, total);
+
+  const maxTime = Math.max(1, ...notes.map(n => n.time + n.sustain));
+  STATE.preview = { notes, osuNotes, maxTime, keys };
+  drawOsuPreview(); drawFnfPreview(); drawDensity();
+
+  const prettyJson = JSON.stringify(STATE.chart, null, opts.compactJson ? 0 : '\t');
+  $('jsonPreview').textContent = prettyJson.length > 5000
+    ? prettyJson.slice(0, 5000) + '\n… (' + prettyJson.length + ' caracteres)' : prettyJson;
+
+  const canDownload = STATE.validation.errors.length === 0;
+  $('btnDownload').disabled = !canDownload;
+  $('btnCopy').disabled = !canDownload;
+  $('btnReset').disabled = false;
+  updateDownloadButton();
+  renderSingleStructure();
+
+  if (canDownload) {
+    const sideTxt = opts.side === 'split' ? ' · ambos lados' : '';
+    setStatus('✔ ' + escapeHtml(genLabel) + sideTxt + ' · ' + total + ' notas · ' +
+      STATE.chart.notes.length + ' secciones · BPM ' +
+      (minBpm === maxBpm ? minBpm : minBpm + '–' + maxBpm) + ' · ' + sus + ' sustains',
+      'ok');
+  } else {
+    setStatus('✖ El chart tiene errores. Revisa el diagnóstico.', 'err');
+  }
+
+  $('osuTag').textContent = isMania ? (keys + 'K') : mode.short;
+  $('fnfTag').textContent = '8 col · ' + total + ' notas';
+  $('denTag').textContent = 'máx ' + maxCol + '/col';
 }
 
-// --- MOUSE EVENTS PARA DRAGGING ---
-overlayCanvas.addEventListener('mousedown', (e) => {
-    if (!img.src) return;
-    const rect = overlayCanvas.getBoundingClientRect();
-    dragStartX = e.clientX - rect.left;
-    dragStartY = e.clientY - rect.top;
-    dragStartOffsetX = parseInt(overlayOffsetX.value) || 0;
-    dragStartOffsetY = parseInt(overlayOffsetY.value) || 0;
-    isDragging = true;
-    overlayCanvas.style.cursor = "grabbing";
-});
+/* ============================================================================
+   DIAGNÓSTICO
+   ============================================================================ */
+function renderDiagnostic(validation, audioConv) {
+  const el = $('diagList');
+  if (!validation) { el.innerHTML = '<div class="diag-item" style="color:var(--mut2)">Carga un archivo…</div>'; return; }
 
-document.addEventListener('mousemove', (e) => {
-    if (!isDragging || !overlayCanvas) return;
-    const rect = overlayCanvas.getBoundingClientRect();
-    const currentX = e.clientX - rect.left;
-    const currentY = e.clientY - rect.top;
-    const deltaX = currentX - dragStartX;
-    const deltaY = currentY - dragStartY;
-    overlayOffsetX.value = dragStartOffsetX + deltaX;
-    overlayOffsetY.value = dragStartOffsetY + deltaY;
-    buildOverlay();
-});
+  let html = '';
 
-document.addEventListener('mouseup', () => {
-    isDragging = false;
-    if (overlayCanvas) overlayCanvas.style.cursor = "grab";
-});
+  validation.checks.forEach(c => {
+    html += '<div class="diag-item ' + (c.ok ? 'ok' : 'fail') + '">' +
+      '<span class="ic">' + (c.ok ? '✓' : '✖') + '</span>' +
+      '<span>' + escapeHtml(c.label) + '</span></div>';
+  });
 
-// --- TOUCH EVENTS PARA MÓVILES ---
-overlayCanvas.addEventListener('touchstart', (e) => {
-    if (!img.src) return;
-    e.preventDefault();
-    const touch = e.touches[0];
-    const rect = overlayCanvas.getBoundingClientRect();
-    dragStartX = touch.clientX - rect.left;
-    dragStartY = touch.clientY - rect.top;
-    dragStartOffsetX = parseInt(overlayOffsetX.value) || 0;
-    dragStartOffsetY = parseInt(overlayOffsetY.value) || 0;
-    isDragging = true;
-});
+  // Diagnóstico de audio
+  if (audioConv) {
+    html += '<div class="diag-item ' + (audioConv.ok ? 'ok' : 'fail') + '">' +
+      '<span class="ic">' + (audioConv.ok ? '✓' : '✖') + '</span>' +
+      '<span>' + escapeHtml(audioConv.label) + '</span></div>';
+  } else {
+    html += '<div class="diag-item fail"><span class="ic">✖</span><span>Inst.ogg: no hay audio válido</span></div>';
+  }
 
-document.addEventListener('touchmove', (e) => {
-    if (!isDragging || !overlayCanvas) return;
-    e.preventDefault();
-    const touch = e.touches[0];
-    const rect = overlayCanvas.getBoundingClientRect();
-    const currentX = touch.clientX - rect.left;
-    const currentY = touch.clientY - rect.top;
-    const deltaX = currentX - dragStartX;
-    const deltaY = currentY - dragStartY;
-    overlayOffsetX.value = dragStartOffsetX + deltaX;
-    overlayOffsetY.value = dragStartOffsetY + deltaY;
-    buildOverlay();
-});
-
-document.addEventListener('touchend', () => {
-    isDragging = false;
-});
-
-let img = new Image();
-let xmlText = "";
-let jsonText = "";
-let jsonObj = null;
-let jsonFileName = "";
-let charName = "character";
-let originalSize = 0;
-
-// frames: lista parseada del XML para preview [{index, name, x, y, width, height}]
-let frames = [];
-// corrections: ajustes manuales de FrameX/FrameY por indice de frame { index: {dx, dy} }
-let corrections = {};
-
-const savedScale = localStorage.getItem('scale');
-if(savedScale) {
-    scaleSlider.value = savedScale;
-    scaleValue.textContent = savedScale;
+  el.innerHTML = html;
 }
 
-const lastChar = localStorage.getItem("lastCharacter");
-const lastScale = localStorage.getItem("lastScale");
-if(lastChar) {
-    historyText.textContent = "Last optimized: " + lastChar + " (" + (lastScale || "1") + "x)";
+function updateAudioDiagnostic(audioInfo) {
+  if (audioInfo && audioInfo.converted) {
+    STATE.audioConverted = {
+      ok: true,
+      label: 'Inst.ogg válido (convertido de ' + audioInfo.reason + ')'
+    };
+  } else if (audioInfo) {
+    STATE.audioConverted = {
+      ok: true,
+      label: 'Inst.ogg válido (' + audioInfo.reason + ')'
+    };
+  } else {
+    STATE.audioConverted = null;
+  }
+  if (STATE.validation) renderDiagnostic(STATE.validation, STATE.audioConverted);
 }
 
-scaleSlider.oninput = () => {
-    scaleValue.textContent = scaleSlider.value;
-    localStorage.setItem('scale', scaleSlider.value);
-    updateFileInfo();
-    buildPreview();
-    buildOverlay();
-};
-
-playableToggle.onchange = () => {
-    playableLabel.textContent = playableToggle.checked ? "true" : "false";
-};
-
-function setScale(value) {
-    scaleSlider.value = value;
-    scaleValue.textContent = value;
-    localStorage.setItem('scale', value);
-    updateFileInfo();
-    buildPreview();
-    buildOverlay();
+function renderStats(st) {
+  $('sTotal').textContent = st.total;
+  $('sPlayer').textContent = st.player;
+  $('sOpp').textContent = st.opp;
+  $('sSus').textContent = st.sus;
+  $('sBpm').textContent = (st.minBpm === st.maxBpm) ? String(st.minBpm)
+    : (st.minBpm + '–' + st.maxBpm);
+  $('sSec').textContent = st.sections;
+}
+function renderGenerator(mode, genLabel, keys, isMania, total) {
+  $('genPanel').style.display = 'flex';
+  $('gMode').textContent = genLabel;
+  let sub = '';
+  if (isMania) sub = keys + ' → 4+4 (8 col)';
+  else if (mode.id === 1) sub = 'don/kat → 2 → 8 col';
+  else sub = 'posición X → 4 → 8 col';
+  sub += ' · ' + total + ' notas';
+  $('gSub').textContent = sub;
 }
 
-function autoScale() {
-    if(img.width >= 2500) {
-        setScale(0.5);
-    } else if(img.width >= 1800) {
-        setScale(0.75);
+/* ============================================================================
+   PREVIEWS
+   ============================================================================ */
+function drawOsuPreview() {
+  const cv = $('osuPreview');
+  const ctx = cv.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const W = cv.clientWidth || 600, H = cv.clientHeight || 160;
+  cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#08060f'; ctx.fillRect(0, 0, W, H);
+  if (!STATE.preview) {
+    ctx.fillStyle = '#3b3255'; ctx.font = '12px system-ui';
+    ctx.textAlign = 'center'; ctx.fillText('Sin datos', W / 2, H / 2); return;
+  }
+  const { osuNotes, maxTime, keys } = STATE.preview;
+  const t = Math.max(1, maxTime);
+  const padL = 8, padR = 8, padT = 6, padB = 14;
+  const laneW = (W - padL - padR) / keys;
+  const usableH = H - padT - padB;
+  for (let i = 0; i < keys; i++) {
+    ctx.fillStyle = (i % 2 === 0) ? 'rgba(255,255,255,.03)' : 'rgba(255,255,255,.06)';
+    ctx.fillRect(padL + i * laneW, padT, laneW - 0.5, usableH);
+  }
+  const minH = 2;
+  for (const n of osuNotes) {
+    const y = padT + (n.time / t) * usableH;
+    const x = padL + n.col * laneW;
+    const w = laneW - 1;
+    if (n.sustain > 0) {
+      const y2 = padT + ((n.time + n.sustain) / t) * usableH;
+      ctx.globalAlpha = 0.35; ctx.fillStyle = '#fbbf24';
+      ctx.fillRect(x + 0.5, y, w, Math.max(minH, y2 - y));
+      ctx.globalAlpha = 1;
+    }
+    ctx.fillStyle = '#a78bfa';
+    ctx.fillRect(x + 0.5, y, w, minH + 1);
+  }
+  ctx.fillStyle = 'rgba(155,144,187,.6)';
+  ctx.font = '9px system-ui';
+  ctx.textAlign = 'right';
+  ctx.fillText(keys + 'K', W - padR, padT + 10);
+}
+function drawFnfPreview() {
+  const cv = $('fnfPreview');
+  const ctx = cv.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const W = cv.clientWidth || 600, H = cv.clientHeight || 160;
+  cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#08060f'; ctx.fillRect(0, 0, W, H);
+  if (!STATE.preview) {
+    ctx.fillStyle = '#3b3255'; ctx.font = '12px system-ui';
+    ctx.textAlign = 'center'; ctx.fillText('Sin datos', W / 2, H / 2); return;
+  }
+  const { notes, maxTime } = STATE.preview;
+  const t = Math.max(1, maxTime);
+  const padL = 8, padR = 8, padT = 6, padB = 14;
+  const laneW = (W - padL - padR) / 8;
+  const usableH = H - padT - padB;
+  for (let i = 0; i < 8; i++) {
+    ctx.fillStyle = i < 4 ? 'rgba(168,85,247,.08)' : 'rgba(34,211,238,.08)';
+    ctx.fillRect(padL + i * laneW, padT, laneW - 0.5, usableH);
+  }
+  ctx.fillStyle = 'rgba(255,255,255,.18)';
+  ctx.fillRect(padL + 4 * laneW - 1, padT, 2, usableH);
+  const minH = 2;
+  for (const n of notes) {
+    const y = padT + (n.time / t) * usableH;
+    const x = padL + n.data * laneW;
+    const w = laneW - 1;
+    const isPlayer = n.data >= 4;
+    if (n.sustain > 0) {
+      const y2 = padT + ((n.time + n.sustain) / t) * usableH;
+      ctx.globalAlpha = 0.4;
+      ctx.fillStyle = isPlayer ? '#22d3ee' : '#c084fc';
+      ctx.fillRect(x + 0.5, y, w, Math.max(minH, y2 - y));
+      ctx.globalAlpha = 1;
+    }
+    ctx.fillStyle = isPlayer ? '#22d3ee' : '#c084fc';
+    ctx.fillRect(x + 0.5, y, w, minH + 1);
+  }
+}
+function drawDensity() {
+  const cv = $('density');
+  const ctx = cv.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const W = cv.clientWidth || 600, H = cv.clientHeight || 50;
+  cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#08060f'; ctx.fillRect(0, 0, W, H);
+  if (!STATE.preview) {
+    ctx.fillStyle = '#3b3255'; ctx.font = '10px system-ui';
+    ctx.textAlign = 'center'; ctx.fillText('Densidad', W / 2, H / 2 + 3); return;
+  }
+  const { notes, maxTime } = STATE.preview;
+  const padL = 8, padR = 8, padT = 4, padB = 10;
+  const usableW = W - padL - padR, usableH = H - padT - padB;
+  const BINS = Math.max(20, Math.min(140, Math.floor(usableW / 5)));
+  const binW = maxTime / BINS;
+  const bins = new Array(BINS).fill(0);
+  for (const n of notes) bins[Math.min(BINS - 1, Math.floor(n.time / binW))]++;
+  const maxBin = Math.max(1, ...bins);
+  const barW = usableW / BINS;
+  for (let i = 0; i < BINS; i++) {
+    const h = (bins[i] / maxBin) * usableH;
+    const x = padL + i * barW, y = padT + usableH - h;
+    const g = ctx.createLinearGradient(0, y, 0, padT + usableH);
+    g.addColorStop(0, 'rgba(255,102,170,.9)');
+    g.addColorStop(1, 'rgba(168,85,247,.35)');
+    ctx.fillStyle = g;
+    ctx.fillRect(x, y, Math.max(1, barW - 1), h);
+  }
+}
+function renderMapInfo(osu) {
+  const m = osu.metadata;
+  const mode = detectMode(osu.general);
+  const keys = detectKeys(osu.difficulty, mode);
+  $('iTitle').textContent = m.TitleUnicode || m.Title || '—';
+  $('iArtist').textContent = m.ArtistUnicode || m.Artist || '—';
+  $('iCreator').textContent = m.Creator || '—';
+  $('iDiff').textContent = m.Version || '—';
+  $('iMode').textContent = mode.name;
+  $('iKeys').textContent = mode.id === 3 ? (keys + 'K')
+    : ('CS ' + (parseFloat(osu.difficulty.CircleSize) || 4).toFixed(1));
+  $('mapInfoCard').style.display = '';
+}
+
+function setStatus(msg, cls) {
+  const el = $('status');
+  el.innerHTML = msg;
+  el.className = 'status' + (cls ? ' ' + cls : '');
+}
+function setProcessing(on) { $('drop').classList.toggle('processing', !!on); }
+
+/* ============================================================================
+   PROCESAMIENTO
+   ============================================================================ */
+async function processFile(file) {
+  if (!file) return;
+  setProcessing(true);
+  const ext = fileExt(file.name);
+  STATE.sourceName = file.name;
+  try {
+    if (ext === 'osu') await handleOsuFile(file);
+    else if (ext === 'osz' || ext === 'zip') await handleZipFile(file, ext);
+    else {
+      setStatus('⚠ Extensión no soportada. Se leerá como .osu…', 'warn');
+      await new Promise(r => setTimeout(r, 800));
+      await handleOsuFile(file);
+    }
+  } catch (err) {
+    console.error(err);
+    setStatus('✖ Error: ' + escapeHtml(err.message), 'err');
+  } finally {
+    setProcessing(false);
+  }
+}
+
+async function handleOsuFile(file) {
+  setStatus('<span class="loader"></span> Leyendo <b>' + escapeHtml(file.name) + '</b>…');
+  const text = await readAsText(file);
+  const parsed = parseOsu(text);
+  if (!parsed.hitObjects.length) { setStatus('Sin notas.', 'err'); return; }
+
+  STATE.packSongs = []; STATE.packName = '';
+  $('packCard').style.display = 'none';
+
+  STATE.source = 'osu';
+  STATE.osuEntries = [{ name: file.name, parsed, meta: parsed.metadata }];
+  STATE.audioEntry = null;
+  STATE.audioConverted = null;
+  STATE.selectedIdx = 0;
+  $('diffCard').style.display = 'none';
+  $('audioCard').style.display = 'none';
+  selectOsu(0);
+
+  const mode = detectMode(parsed.general);
+  const keys = detectKeys(parsed.difficulty, mode);
+  setStatus('<b>' + escapeHtml(file.name) + '</b> · ' + parsed.hitObjects.length +
+    ' objetos · ' + escapeHtml(generatorLabel(mode, keys)), 'ok');
+}
+
+async function handleZipFile(file, ext) {
+  setStatus('<span class="loader"></span> Analizando <b>' + escapeHtml(file.name) + '</b>…');
+  const buffer = await readAsBuffer(file);
+  let files;
+  try { files = await unzip(buffer); }
+  catch (err) { setStatus('✖ Error: ' + escapeHtml(err.message), 'err'); return; }
+
+  const oszFiles = files.filter(f => /\.osz$/i.test(f.name));
+  if (oszFiles.length >= 2) {
+    setStatus('<span class="loader"></span> Pack con <b>' + oszFiles.length + '</b> .osz…');
+    await handlePack(file.name, oszFiles);
+    return;
+  }
+
+  const osuFiles = files.filter(f => /\.osu$/i.test(f.name));
+  if (!osuFiles.length) { setStatus('✖ Sin .osu ni .osz.', 'err'); return; }
+
+  STATE.packSongs = []; STATE.packName = '';
+  $('packCard').style.display = 'none';
+
+  const decoder = new TextDecoder('utf-8');
+  const entries = [];
+  for (const f of osuFiles) {
+    try {
+      const text = decoder.decode(f.data).replace(/^\uFEFF/, '');
+      const parsed = parseOsu(text);
+      entries.push({ name: f.name.split('/').pop(), parsed, meta: parsed.metadata });
+    } catch (err) {}
+  }
+  if (!entries.length) { setStatus('✖ Sin .osu válidos.', 'err'); return; }
+
+  const audioFiles = files.filter(f => /\.(mp3|ogg|wav|m4a|flac)$/i.test(f.name));
+  let audio = null;
+  const audioWanted = (entries[0].parsed.general.AudioFilename || '').toLowerCase();
+  if (audioWanted) {
+    for (const af of audioFiles) {
+      if (af.name.split('/').pop().toLowerCase() === audioWanted) {
+        audio = { name: af.name.split('/').pop(), data: af.data }; break;
+      }
+    }
+  }
+  if (!audio && audioFiles.length) {
+    audioFiles.sort((a, b) => b.data.length - a.data.length);
+    audio = { name: audioFiles[0].name.split('/').pop(), data: audioFiles[0].data };
+  }
+
+  STATE.source = ext;
+  STATE.osuEntries = entries;
+  STATE.audioEntry = audio;
+  STATE.audioConverted = null;
+  STATE.selectedIdx = 0;
+  renderDifficultyList();
+  if (audio) {
+    $('audioCard').style.display = '';
+    $('audioName').textContent = audio.name;
+    $('audioMeta').textContent = fmtBytes(audio.data.length) + ' · se convertirá a OGG si es necesario';
+  } else {
+    $('audioCard').style.display = 'none';
+    setStatus('⚠ No se encontró audio en el paquete. El ZIP se generará sin Inst.ogg.', 'warn');
+  }
+  selectOsu(0);
+
+  const m0 = detectMode(entries[0].parsed.general);
+  const k0 = detectKeys(entries[0].parsed.difficulty, m0);
+  setStatus('<b>' + escapeHtml(file.name) + '</b> · ' + entries.length +
+    ' dificultad' + (entries.length !== 1 ? 'es' : '') + ' · ' +
+    escapeHtml(generatorLabel(m0, k0)) +
+    (audio ? ' · audio: <b>' + escapeHtml(audio.name) + '</b>' : '') +
+    ' → descarga <b>.zip</b>', 'ok');
+}
+
+/* ============================================================================
+   HANDLE PACK
+   ============================================================================ */
+async function handlePack(packFileName, oszFiles) {
+  const decoder = new TextDecoder('utf-8');
+  const packSongs = [];
+
+  for (let i = 0; i < oszFiles.length; i++) {
+    const oszFile = oszFiles[i];
+    setStatus('<span class="loader"></span> Procesando ' + (i + 1) + '/' + oszFiles.length +
+      ': <b>' + escapeHtml(oszFile.name.split('/').pop()) + '</b>…');
+
+    let innerFiles;
+    try { innerFiles = await unzip(oszFile.data.buffer); }
+    catch (err) { console.warn('Fallo', oszFile.name, err); continue; }
+
+    const innerOsu = innerFiles.filter(f => /\.osu$/i.test(f.name));
+    const innerAudio = innerFiles.filter(f => /\.(mp3|ogg|wav|m4a|flac)$/i.test(f.name));
+    if (!innerOsu.length) continue;
+
+    const osuEntries = [];
+    for (const f of innerOsu) {
+      try {
+        const text = decoder.decode(f.data).replace(/^\uFEFF/, '');
+        const parsed = parseOsu(text);
+        if (parsed.hitObjects.length) {
+          osuEntries.push({ name: f.name.split('/').pop(), parsed, meta: parsed.metadata });
+        }
+      } catch (err) {}
+    }
+    if (!osuEntries.length) continue;
+
+    let bestIdx = 0;
+    for (let j = 1; j < osuEntries.length; j++) {
+      if (osuEntries[j].parsed.hitObjects.length > osuEntries[bestIdx].parsed.hitObjects.length) {
+        bestIdx = j;
+      }
+    }
+
+    let audio = null;
+    if (innerAudio.length) {
+      innerAudio.sort((a, b) => b.data.length - a.data.length);
+      audio = { name: innerAudio[0].name.split('/').pop(), data: innerAudio[0].data };
+    }
+
+    packSongs.push({
+      oszName: oszFile.name.split('/').pop(),
+      osuEntries, audio,
+      selectedDiffIdx: bestIdx,
+      selected: true
+    });
+  }
+
+  if (!packSongs.length) { setStatus('✖ Pack sin canciones válidas.', 'err'); return; }
+
+  STATE.source = 'pack';
+  STATE.packSongs = packSongs;
+  STATE.packName = sanitizeName(packFileName.replace(/\.[^.]+$/, '')) || 'osu-pack';
+  STATE.osuEntries = [];
+  STATE.audioEntry = null;
+  STATE.parsed = null;
+  STATE.chart = null;
+
+  $('diffCard').style.display = 'none';
+  $('audioCard').style.display = 'none';
+  $('mapInfoCard').style.display = 'none';
+  $('genPanel').style.display = 'none';
+  $('btnDownload').disabled = true;
+  $('btnCopy').disabled = true;
+  $('singleStructure').innerHTML = '';
+
+  $('packWeekName').value = STATE.packName;
+  renderPackUI();
+
+  setStatus('Pack: <b>' + escapeHtml(packFileName) + '</b> · <b>' + packSongs.length +
+    '</b> canciones', 'ok');
+}
+
+function renderPackUI() {
+  $('packCard').style.display = '';
+  const list = $('packList');
+  list.innerHTML = '';
+
+  const totalBytes = STATE.packSongs.reduce((s, x) => s + (x.audio ? x.audio.data.length : 0), 0);
+  $('packTitle').textContent = STATE.sourceName;
+  $('packMeta').textContent = STATE.packSongs.length + ' canciones · ' +
+    fmtBytes(totalBytes) + ' de audio';
+
+  STATE.packSongs.forEach((song, i) => {
+    const row = document.createElement('div');
+    row.className = 'pack-row' + (song.selected ? ' selected' : ' deselected');
+
+    const entry = song.osuEntries[song.selectedDiffIdx];
+    const mode = detectMode(entry.parsed.general);
+    const keys = detectKeys(entry.parsed.difficulty, mode);
+    const title = entry.meta.TitleUnicode || entry.meta.Title || entry.name.replace(/\.osu$/i,'');
+    const nNotes = entry.parsed.hitObjects.length;
+
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.checked = song.selected;
+    cb.addEventListener('change', () => {
+      song.selected = cb.checked;
+      row.classList.toggle('selected', song.selected);
+      row.classList.toggle('deselected', !song.selected);
+      updatePackButton();
+      renderPackStructure();
+    });
+
+    const info = document.createElement('div');
+    info.className = 'pr-info';
+    info.innerHTML =
+      '<div class="pr-title">' + escapeHtml(title) + '</div>' +
+      '<div class="pr-sub">' + escapeHtml(generatorLabel(mode, keys)) + ' · ' + nNotes +
+      ' notas · ' + escapeHtml(song.oszName) + '</div>';
+
+    const diffSel = document.createElement('select');
+    song.osuEntries.forEach((e, j) => {
+      const o = document.createElement('option');
+      o.value = j;
+      o.textContent = (e.meta.Version || e.name) + ' (' + e.parsed.hitObjects.length + ')';
+      if (j === song.selectedDiffIdx) o.selected = true;
+      diffSel.appendChild(o);
+    });
+    diffSel.addEventListener('click', (e) => e.stopPropagation());
+    diffSel.addEventListener('change', (e) => {
+      e.stopPropagation();
+      song.selectedDiffIdx = parseInt(diffSel.value, 10);
+      const newEntry = song.osuEntries[song.selectedDiffIdx];
+      const newMode = detectMode(newEntry.parsed.general);
+      const newKeys = detectKeys(newEntry.parsed.difficulty, newMode);
+      const newTitle = newEntry.meta.TitleUnicode || newEntry.meta.Title ||
+        newEntry.name.replace(/\.osu$/i,'');
+      info.innerHTML =
+        '<div class="pr-title">' + escapeHtml(newTitle) + '</div>' +
+        '<div class="pr-sub">' + escapeHtml(generatorLabel(newMode, newKeys)) + ' · ' +
+        newEntry.parsed.hitObjects.length + ' notas · ' + escapeHtml(song.oszName) + '</div>';
+      renderPackStructure();
+    });
+
+    row.appendChild(cb);
+    row.appendChild(info);
+    row.appendChild(diffSel);
+    list.appendChild(row);
+  });
+
+  updatePackButton();
+  renderPackStructure();
+}
+
+function updatePackButton() {
+  const btn = $('btnPackDownload');
+  const n = STATE.packSongs.filter(s => s.selected).length;
+  btn.textContent = n === 0 ? 'Sin canciones' : 'Generar pack .zip (' + n + ')';
+  btn.disabled = n === 0;
+}
+
+function computePackSongIds() {
+  const selected = STATE.packSongs.filter(s => s.selected);
+  const usedIds = new Set();
+  const result = [];
+  for (const song of selected) {
+    const entry = song.osuEntries[song.selectedDiffIdx];
+    const diffName = entry.parsed.metadata.Version || entry.name.replace(/\.osu$/i, '');
+    let sid = sanitizeName(diffName);
+    if (usedIds.has(sid)) {
+      let n = 2;
+      while (usedIds.has(sid + '-' + n)) n++;
+      sid = sid + '-' + n;
+    }
+    usedIds.add(sid);
+    result.push({ song, songId: sid, entry });
+  }
+  return result;
+}
+
+function renderPackStructure() {
+  const el = $('packStructure');
+  const weekName = sanitizeName($('packWeekName').value) || STATE.packName || 'osu-pack';
+  const computed = computePackSongIds();
+
+  if (!computed.length) {
+    el.innerHTML = '<span class="muted">Ninguna canción seleccionada</span>';
+    return;
+  }
+
+  let html = '<span class="root">mods/tu-mod/</span>\n';
+  html += '├── <span class="folder">weeks/</span>\n';
+  html += '│   └── <span class="week">' + escapeHtml(weekName) + '.json</span>\n';
+  html += '├── <span class="folder">data/</span>\n';
+  computed.forEach((c, i) => {
+    const isLast = i === computed.length - 1;
+    html += (isLast ? '│   └── ' : '│   ├── ') +
+      '<span class="folder">' + escapeHtml(c.songId) + '/</span>\n';
+    html += (isLast ? '│       └── ' : '│   │   └── ') +
+      '<span class="file">' + escapeHtml(c.songId) + '.json</span>\n';
+  });
+  html += '└── <span class="folder">songs/</span>\n';
+  computed.forEach((c, i) => {
+    const isLast = i === computed.length - 1;
+    html += (isLast ? '    └── ' : '    ├── ') +
+      '<span class="folder">' + escapeHtml(c.songId) + '/</span>\n';
+    html += (isLast ? '        └── ' : '    │   └── ') +
+      (c.song.audio
+        ? '<span class="audio">Inst.ogg</span>'
+        : '<span class="muted">⚠ sin audio</span>') + '\n';
+  });
+
+  el.innerHTML = html;
+}
+
+function renderSingleStructure() {
+  const el = $('singleStructure');
+  const sid = STATE.baseName;
+  if (STATE.source === 'osu') {
+    el.innerHTML = '<div class="structure">' +
+      '<span class="muted"># Coloca manualmente:</span>\n' +
+      '<span class="root">mods/tu-mod/</span>\n' +
+      '├── <span class="folder">data/</span>\n' +
+      '│   └── <span class="folder">' + escapeHtml(sid) + '/</span>\n' +
+      '│       └── <span class="file">' + escapeHtml(sid) + '.json</span>\n' +
+      '└── <span class="folder">songs/</span>\n' +
+      '    └── <span class="folder">' + escapeHtml(sid) + '/</span>\n' +
+      '        └── <span class="audio">Inst.ogg</span> <span class="muted">(tú lo pones)</span>' +
+      '</div>';
+  } else if (STATE.source === 'osz' || STATE.source === 'zip') {
+    const audioOk = STATE.audioEntry;
+    el.innerHTML = '<div class="structure">' +
+      '<span class="root">mods/tu-mod/</span>\n' +
+      '├── <span class="folder">weeks/</span>\n' +
+      '│   └── <span class="week">' + escapeHtml(sid) + '.json</span>\n' +
+      '├── <span class="folder">data/</span>\n' +
+      '│   └── <span class="folder">' + escapeHtml(sid) + '/</span>\n' +
+      '│       └── <span class="file">' + escapeHtml(sid) + '.json</span>\n' +
+      '└── <span class="folder">songs/</span>\n' +
+      '    └── <span class="folder">' + escapeHtml(sid) + '/</span>\n' +
+      (audioOk
+        ? '        └── <span class="audio">Inst.ogg</span>'
+        : '        └── <span class="muted">⚠ sin audio</span>') +
+      '</div>';
+  } else {
+    el.innerHTML = '';
+  }
+}
+
+function generateWeekJson(songIds, opts, weekName) {
+  return JSON.stringify({
+    songs: songIds.map(sid => [sid, opts.player1, [49, 176, 209]]),
+    weekCharacters: ["", opts.player1, opts.player2],
+    weekBackground: "",
+    storyName: "",
+    weekBefore: "",
+    weekName: weekName || opts.songId,
+    startUnlocked: true,
+    hideStoryMode: true,
+    hideFreeplay: false
+  }, null, '\t');
+}
+
+/* ============================================================================
+   GENERAR PACK ZIP — con conversión de audio real
+   ============================================================================ */
+$('btnPackDownload').addEventListener('click', async () => {
+  const computed = computePackSongIds();
+  if (!computed.length) return;
+
+  const opts = readOptions();
+  const weekName = sanitizeName($('packWeekName').value) || STATE.packName || 'osu-pack';
+  const indent = opts.compactJson ? 0 : '\t';
+
+  $('btnPackDownload').disabled = true;
+
+  try {
+    const files = [];
+    const weekSongs = [];
+    const packErrors = [];
+
+    for (let i = 0; i < computed.length; i++) {
+      const c = computed[i];
+      setStatus('<span class="loader"></span> Generando chart ' + (i + 1) + '/' +
+        computed.length + ' (' + escapeHtml(c.songId) + ')…');
+      await new Promise(r => setTimeout(r, 20));
+
+      const parsed = c.entry.parsed;
+      const songDisplay = parsed.metadata.TitleUnicode || parsed.metadata.Title || c.songId;
+      const songOpts = Object.assign({}, opts, { songId: c.songId });
+
+      const { notes, uninheritedTps } = extractNotes(parsed, songOpts);
+      if (!notes.length) { packErrors.push(c.songId + ': sin notas'); continue; }
+
+      const chart = buildChart(notes, uninheritedTps, parsed.timingPoints,
+        songOpts, c.songId, songDisplay);
+
+      // Validar cada chart del pack
+      const validation = validateChart(chart);
+      if (validation.errors.length > 0) {
+        packErrors.push(c.songId + ': ' + validation.errors[0]);
+        continue;
+      }
+
+      const chartJson = JSON.stringify(chart, null, indent);
+      files.push({
+        name: 'data/' + c.songId + '/' + c.songId + '.json',
+        data: TEXT_ENCODER.encode(chartJson)
+      });
+
+      // ★ CONVERSIÓN DE AUDIO REAL
+      if (c.song.audio) {
+        try {
+          const result = await convertToOGG(c.song.audio.data, c.song.audio.name);
+          files.push({
+            name: 'songs/' + c.songId + '/Inst.ogg',
+            data: result.data
+          });
+        } catch (audioErr) {
+          packErrors.push(c.songId + ' (audio): ' + audioErr.message);
+          // No abortamos: el chart es válido aunque falte el audio.
+          // Pero lo reportamos en el diagnóstico final.
+        }
+      }
+
+      weekSongs.push(c.songId);
+    }
+
+    if (!weekSongs.length) {
+      setStatus('✖ No se generó ningún chart válido. Errores: ' + escapeHtml(packErrors.join('; ')), 'err');
+      return;
+    }
+
+    if (packErrors.length > 0) {
+      setStatus('⚠ Se generó el pack con advertencias: ' + escapeHtml(packErrors.join('; ')), 'warn');
+    }
+
+    const weekJson = generateWeekJson(weekSongs, opts, weekName);
+    files.push({ name: 'weeks/' + weekName + '.json', data: TEXT_ENCODER.encode(weekJson) });
+
+    setStatus('<span class="loader"></span> Empaquetando ' + files.length + ' archivos…');
+    const zipBlob = await createZip(files, (idx, total) => {
+      if (idx % 3 === 0 || idx === total) {
+        setStatus('<span class="loader"></span> Comprimiendo ' + idx + '/' + total + '…');
+      }
+    });
+
+    downloadBlob(zipBlob, weekName + '.zip');
+    setStatus('✔ Pack: <b>' + escapeHtml(weekName) + '.zip</b> · ' +
+      weekSongs.length + ' canciones · extrae en <code>mods/tu-mod/</code>', 'ok');
+
+  } catch (err) {
+    console.error(err);
+    setStatus('✖ Error: ' + escapeHtml(err.message), 'err');
+  } finally {
+    $('btnPackDownload').disabled = false;
+    updatePackButton();
+  }
+});
+
+$('packWeekName').addEventListener('input', () => renderPackStructure());
+$('packSelAll').addEventListener('click', () => {
+  STATE.packSongs.forEach(s => s.selected = true);
+  renderPackUI();
+});
+$('packSelNone').addEventListener('click', () => {
+  STATE.packSongs.forEach(s => s.selected = false);
+  renderPackUI();
+});
+
+/* ============================================================================
+   DIFFICULTY LIST
+   ============================================================================ */
+function renderDifficultyList() {
+  const list = $('diffList');
+  list.innerHTML = '';
+  STATE.osuEntries.forEach((e, i) => {
+    const m = e.meta;
+    const mode = detectMode(e.parsed.general);
+    const keys = detectKeys(e.parsed.difficulty, mode);
+    const bpmTps = e.parsed.timingPoints.filter(t => t.uninherited);
+    const bpm = bpmTps.length ? Math.round(60000 / bpmTps[0].beatLength) : '?';
+    const el = document.createElement('div');
+    el.className = 'diff-item' + (i === STATE.selectedIdx ? ' active' : '');
+    el.innerHTML =
+      '<div><div class="name">' + escapeHtml(m.Version || e.name) + '</div>' +
+      '<div class="small">' + escapeHtml(generatorLabel(mode, keys)) + '</div></div>' +
+      '<div class="meta">' + bpm + ' BPM · ' + e.parsed.hitObjects.length + '</div>';
+    el.addEventListener('click', () => selectOsu(i));
+    list.appendChild(el);
+  });
+  $('diffCard').style.display = STATE.osuEntries.length > 1 ? '' : 'none';
+}
+
+function selectOsu(idx) {
+  STATE.selectedIdx = clamp(idx, 0, STATE.osuEntries.length - 1);
+  const entry = STATE.osuEntries[STATE.selectedIdx];
+  STATE.parsed = entry.parsed;
+  document.querySelectorAll('#diffList .diff-item').forEach((el, i) => {
+    el.classList.toggle('active', i === STATE.selectedIdx);
+  });
+  const diffName = entry.parsed.metadata.Version || 'chart';
+  $('songId').value = sanitizeName(diffName);
+  $('songName').value = entry.parsed.metadata.TitleUnicode
+    || entry.parsed.metadata.Title || diffName;
+  renderMapInfo(entry.parsed);
+  convert();
+}
+
+/* ============================================================================
+   DESCARGA AUDIO
+   ============================================================================ */
+$('btnAudio').addEventListener('click', async () => {
+  if (!STATE.audioEntry) return;
+  try {
+    const result = await convertToOGG(STATE.audioEntry.data, STATE.audioEntry.name);
+    downloadBlob(new Blob([result.data], { type: 'audio/ogg' }), 'Inst.ogg');
+    setStatus('✔ Audio convertido a OGG Vorbis (' + result.reason + ')', 'ok');
+  } catch (err) {
+    setStatus('✖ Error al convertir audio: ' + escapeHtml(err.message), 'err');
+  }
+});
+
+/* ============================================================================
+   DESCARGA SINGLE — con conversión de audio real
+   ============================================================================ */
+$('btnDownload').addEventListener('click', async () => {
+  if (!STATE.chart) return;
+  const opts = readOptions();
+  const json = JSON.stringify(STATE.chart, null, opts.compactJson ? 0 : '\t');
+  const songId = opts.songId || STATE.baseName;
+
+  if (STATE.source === 'osu') {
+    downloadBlob(new Blob([json], { type: 'application/json' }), songId + '.json');
+    return;
+  }
+
+  $('btnDownload').disabled = true;
+  $('btnDownload').textContent = '⏳ Generando…';
+  try {
+    const files = [];
+    files.push({
+      name: 'data/' + songId + '/' + songId + '.json',
+      data: TEXT_ENCODER.encode(json)
+    });
+
+    // ★ CONVERSIÓN DE AUDIO REAL
+    if (STATE.audioEntry) {
+      try {
+        const result = await convertToOGG(STATE.audioEntry.data, STATE.audioEntry.name);
+        files.push({ name: 'songs/' + songId + '/Inst.ogg', data: result.data });
+        updateAudioDiagnostic({ converted: result.converted, reason: result.reason });
+      } catch (audioErr) {
+        setStatus('✖ No se pudo convertir el audio: ' + escapeHtml(audioErr.message) +
+          '. El ZIP se generará sin Inst.ogg.', 'err');
+      }
     } else {
-        setScale(1);
+      setStatus('⚠ No hay audio. El ZIP se generará sin Inst.ogg.', 'warn');
     }
+
+    const weekJson = generateWeekJson([songId], opts, songId);
+    files.push({ name: 'weeks/' + songId + '.json', data: TEXT_ENCODER.encode(weekJson) });
+
+    const zipBlob = await createZip(files);
+    downloadBlob(zipBlob, songId + '.zip');
+  } catch (err) {
+    console.error(err);
+    setStatus('✖ Error: ' + escapeHtml(err.message), 'err');
+  } finally {
+    $('btnDownload').disabled = false;
+    updateDownloadButton();
+  }
+});
+
+function updateDownloadButton() {
+  const btn = $('btnDownload');
+  const hint = $('downloadHint');
+  const gen = STATE.stats ? STATE.stats.genLabel : '—';
+  if (STATE.source === 'osu') {
+    btn.textContent = 'Descargar .json';
+    hint.style.display = 'block';
+    hint.innerHTML = '<code>' + escapeHtml(STATE.baseName) + '.json</code> · ' +
+      escapeHtml(gen) + ' · necesita conversión manual de audio a OGG';
+  } else if (STATE.source === 'osz' || STATE.source === 'zip') {
+    btn.textContent = 'Descargar .zip';
+    hint.style.display = 'block';
+    hint.innerHTML = '<code>' + escapeHtml(STATE.baseName) + '.zip</code> con ' +
+      '<code>weeks/</code> + <code>data/</code> + <code>songs/</code> · ' + escapeHtml(gen);
+  } else if (STATE.source === 'pack') {
+    btn.textContent = 'Usa el botón del pack';
+    btn.disabled = true;
+    hint.style.display = 'none';
+  }
 }
 
-function updateFileInfo() {
-    if(originalSize > 0 && img.src) {
-        const scale = parseFloat(scaleSlider.value);
-        const estimated = originalSize * scale * scale;
-        
-        fileInfo.innerHTML = `
-            Resolution: ${img.width}x${img.height} <br>
-            Original Size: ${(originalSize/1024/1024).toFixed(2)} MB <br>
-            <b>Estimated: ${(estimated/1024/1024).toFixed(2)} MB</b>
-        `;
-    }
-}
+$('btnCopy').addEventListener('click', async () => {
+  if (!STATE.chart) return;
+  const opts = readOptions();
+  const json = JSON.stringify(STATE.chart, null, opts.compactJson ? 0 : '\t');
+  try {
+    await navigator.clipboard.writeText(json);
+    const btn = $('btnCopy');
+    const old = btn.textContent;
+    btn.textContent = '✔ ¡Copiado!';
+    setTimeout(() => { btn.textContent = old; }, 1400);
+  } catch { setStatus('No se pudo copiar.', 'err'); }
+});
 
-document.getElementById('pngUpload').onchange = e => {
-    const file = e.target.files[0];
-    if (!file) return;
-    
-    charName = file.name.replace(/\.png$/i, "");
-    originalSize = file.size; 
+$('btnReset').addEventListener('click', () => {
+  STATE.source = null; STATE.sourceName = '';
+  STATE.osuEntries = []; STATE.audioEntry = null;
+  STATE.selectedIdx = 0; STATE.parsed = null;
+  STATE.chart = null; STATE.preview = null; STATE.stats = null;
+  STATE.baseName = 'chart'; STATE.packSongs = []; STATE.packName = '';
+  STATE.audioConverted = null; STATE.validation = null;
 
-    const reader = new FileReader();
-    reader.onload = () => img.src = reader.result;
-    reader.readAsDataURL(file);
-};
+  $('file').value = '';
+  $('packCard').style.display = 'none';
+  $('diffCard').style.display = 'none';
+  $('audioCard').style.display = 'none';
+  $('mapInfoCard').style.display = 'none';
+  $('downloadHint').style.display = 'none';
+  $('genPanel').style.display = 'none';
+  $('singleStructure').innerHTML = '';
+  $('packWeekName').value = '';
+  $('songId').value = ''; $('songName').value = '';
+  $('p1').value = 'bf'; $('p2').value = 'dad'; $('gf').value = 'gf';
+  $('stage').value = 'stage';
+  $('speed').value = '1.6'; $('offset').value = '0';
+  $('minSustain').value = '0';
+  $('side').value = 'player'; $('steps').value = '16';
+  $('oddBias').value = 'right';
+  $('kiaiAlt').checked = false; $('compactJson').checked = false;
 
-img.onload = () => {
-    updateFileInfo();
-    buildPreview();
-    buildOverlay();
-};
+  $('btnDownload').disabled = true;
+  $('btnDownload').textContent = 'Descargar';
+  $('btnCopy').disabled = true;
+  $('btnReset').disabled = true;
 
-document.getElementById('xmlUpload').onchange = e => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-        xmlText = reader.result;
-        parseFramesFromXML();
-        buildPreview();
-    };
-    reader.readAsText(file);
-};
+  ['sTotal','sPlayer','sOpp','sSus','sBpm','sSec'].forEach(id => $(id).textContent = '—');
+  $('osuTag').textContent = '—'; $('fnfTag').textContent = '—'; $('denTag').textContent = '—';
+  $('jsonPreview').textContent = '—';
+  $('diagList').innerHTML = '<div class="diag-item" style="color:var(--mut2)">Carga un archivo…</div>';
+  setStatus('Esperando archivo…');
+  drawOsuPreview(); drawFnfPreview(); drawDensity();
+});
 
-document.getElementById('jsonUpload').onchange = e => {
-    const file = e.target.files[0];
-    if (!file) {
-        jsonText = "";
-        jsonObj = null;
-        jsonFileName = "";
-        jsonDetectEl.style.display = "none";
-        return;
-    }
-    jsonFileName = file.name; // 1. el JSON exportado usa este mismo nombre
-    const reader = new FileReader();
-    reader.onload = () => {
-        jsonText = reader.result;
-        // 4. Detectar el JSON apenas se sube
-        try {
-            jsonObj = JSON.parse(jsonText);
-            let info = "JSON detectado (" + jsonFileName + "):<br>";
-            info += "Imagen: " + (jsonObj.image || "(sin imagen)") + "<br>";
-            info += "Escala actual: " + (jsonObj.scale !== undefined ? jsonObj.scale : "(sin escala)") + "<br>";
-            if (jsonObj.animations) {
-                info += "Animaciones: " + jsonObj.animations.length + "<br>";
-            }
-            if (jsonObj.playable !== undefined) {
-                info += "Playable detectado: " + jsonObj.playable;
-                playableToggle.checked = !!jsonObj.playable;
-                playableLabel.textContent = playableToggle.checked ? "true" : "false";
-            } else {
-                info += "Playable: no especificado en el JSON (elegí abajo)";
-            }
-            jsonDetectEl.innerHTML = info;
-            jsonDetectEl.style.display = "block";
-        } catch (err) {
-            jsonObj = null;
-            jsonDetectEl.innerHTML = "No se pudo leer el JSON (¿formato inválido?)";
-            jsonDetectEl.style.display = "block";
-        }
-    };
-    reader.readAsText(file);
-};
+/* ============================================================================
+   UI
+   ============================================================================ */
+const drop = $('drop');
+const fileInput = $('file');
+drop.addEventListener('click', () => fileInput.click());
+drop.addEventListener('dragover', (e) => { e.preventDefault(); drop.classList.add('over'); });
+drop.addEventListener('dragleave', () => drop.classList.remove('over'));
+drop.addEventListener('drop', (e) => {
+  e.preventDefault(); drop.classList.remove('over');
+  const f = e.dataTransfer.files && e.dataTransfer.files[0];
+  if (f) processFile(f);
+});
+fileInput.addEventListener('change', (e) => {
+  const f = e.target.files && e.target.files[0];
+  if (f) processFile(f);
+});
 
-// --- Parseo de frames del XML para la vista previa ---
-function parseFramesFromXML() {
-    frames = [];
-    corrections = {};
-    if (!xmlText) return;
-    const parser = new DOMParser();
-    const xml = parser.parseFromString(xmlText, "application/xml");
-    const subs = xml.getElementsByTagName("SubTexture");
-    let i = 0;
-    for (let s of subs) {
-        frames.push({
-            index: i,
-            name: s.getAttribute("name") || ("frame_" + i),
-            x: parseInt(s.getAttribute("x")) || 0,
-            y: parseInt(s.getAttribute("y")) || 0,
-            width: parseInt(s.getAttribute("width")) || 0,
-            height: parseInt(s.getAttribute("height")) || 0
-        });
-        i++;
-    }
-    // repoblar el select
-    frameSelect.innerHTML = "";
-    if (frames.length === 0) {
-        frameSelect.innerHTML = "<option value=''>-- Sin frames --</option>";
-        return;
-    }
-    frames.forEach(f => {
-        const opt = document.createElement("option");
-        opt.value = f.index;
-        opt.textContent = f.name + " (" + f.width + "x" + f.height + ")";
-        frameSelect.appendChild(opt);
-    });
-}
+['side','steps','speed','offset','p1','p2','gf','stage','songId','songName',
+ 'kiaiAlt','minSustain'].forEach((id) => {
+  const el = $(id);
+  if (!el) return;
+  el.addEventListener('change', () => { if (STATE.parsed) convert(); });
+  el.addEventListener('input', () => { if (STATE.parsed) convert(); });
+});
 
-frameSelect.onchange = () => {
-    const idx = frameSelect.value;
-    if (idx === "") return;
-    const c = corrections[idx] || { dx: 0, dy: 0 };
-    adjustX.value = c.dx;
-    adjustY.value = c.dy;
-    buildPreview();
-};
+let resizeTimer = null;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    drawOsuPreview(); drawFnfPreview(); drawDensity();
+  }, 120);
+});
 
-adjustX.oninput = adjustY.oninput = () => {
-    const idx = frameSelect.value;
-    if (idx === "") return;
-    corrections[idx] = {
-        dx: parseInt(adjustX.value) || 0,
-        dy: parseInt(adjustY.value) || 0
-    };
-    buildPreview();
-};
-
-// --- Dibuja el atlas escalado con los recuadros de cada frame ---
-function buildPreview() {
-    if (!img.src || frames.length === 0) return;
-    const scale = parseFloat(scaleSlider.value);
-    previewCanvas.style.display = "block";
-    previewCanvas.width = Math.round(img.width * scale);
-    previewCanvas.height = Math.round(img.height * scale);
-    previewCtx.imageSmoothingEnabled = !document.getElementById('lowRam').checked;
-    previewCtx.drawImage(img, 0, 0, previewCanvas.width, previewCanvas.height);
-
-    const selectedIdx = frameSelect.value;
-
-    frames.forEach(f => {
-        let sx = fixZero(f.x, scale);
-        let sy = fixZero(f.y, scale);
-        const sw = Math.round(f.width * scale);
-        const sh = Math.round(f.height * scale);
-
-        const isSelected = String(f.index) === String(selectedIdx);
-        previewCtx.strokeStyle = isSelected ? "#ff3838" : "#55efc4";
-        previewCtx.lineWidth = isSelected ? 2 : 1;
-        previewCtx.strokeRect(sx, sy, sw, sh);
-    });
-}
-
-// 2. Fix de coordenadas en 0,0: si al bajar la escala una coordenada de atlas
-// queda en 0, la subimos a 1 para evitar bleeding/artefactos en el borde.
-function fixZero(rawValue, scale) {
-    if (scale < 1 && rawValue === 0) {
-        return 1;
-    }
-    return Math.round(rawValue * scale);
-}
-
-function optimize() {
-    if (!img.src || !xmlText) {
-        alert("Upload BOTH PNG and XML first!");
-        return;
-    }
-
-    const scale = parseFloat(scaleSlider.value);
-    const lowRam = document.getElementById('lowRam').checked;
-
-    canvas.width = Math.round(img.width * scale);
-    canvas.height = Math.round(img.height * scale);
-    
-    ctx.imageSmoothingEnabled = !lowRam;
-    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-    // --- 1. PROCESAR Y EXPORTAR XML ---
-    const parser = new DOMParser();
-    const xml = parser.parseFromString(xmlText, "application/xml");
-    const subs = xml.getElementsByTagName("SubTexture");
-
-    let i = 0;
-    for (let s of subs) {
-        // x, y: posición en el atlas -> aplica fix de 0,0
-        if (s.hasAttribute("x")) {
-            const v = parseInt(s.getAttribute("x"));
-            s.setAttribute("x", fixZero(v, scale));
-        }
-        if (s.hasAttribute("y")) {
-            const v = parseInt(s.getAttribute("y"));
-            s.setAttribute("y", fixZero(v, scale));
-        }
-        // width, height, frameWidth, frameHeight: solo escalar
-        ["width","height","frameWidth","frameHeight"].forEach(attr => {
-            if (s.hasAttribute(attr)) {
-                const v = parseInt(s.getAttribute(attr));
-                s.setAttribute(attr, Math.round(v * scale));
-            }
-        });
-        // frameX, frameY: escalar + aplicar ajuste manual (corrections) si existe
-        const corr = corrections[i] || { dx: 0, dy: 0 };
-        if (s.hasAttribute("frameX")) {
-            const v = parseInt(s.getAttribute("frameX"));
-            s.setAttribute("frameX", Math.round(v * scale) + corr.dx);
-        }
-        if (s.hasAttribute("frameY")) {
-            const v = parseInt(s.getAttribute("frameY"));
-            s.setAttribute("frameY", Math.round(v * scale) + corr.dy);
-        }
-        i++;
-    }
-
-    const serializer = new XMLSerializer();
-    const outXML = serializer.serializeToString(xml);
-    const xmlBlob = new Blob([outXML], { type: "text/xml" });
-
-    const xmlLink = document.createElement('a');
-    xmlLink.download = charName + "-low.xml";
-    xmlLink.href = URL.createObjectURL(xmlBlob);
-    xmlLink.click();
-    setTimeout(() => URL.revokeObjectURL(xmlLink.href), 100);
-
-    // --- 2. PROCESAR Y EXPORTAR JSON ---
-    if (jsonText) {
-        try {
-            const outObj = JSON.parse(jsonText);
-            
-            if (outObj.image) {
-                outObj.image = outObj.image + "-low"; 
-            } else {
-                outObj.image = charName + "-low";
-            }
-
-            if (outObj.scale) {
-                outObj.scale = parseFloat((outObj.scale / scale).toFixed(2));
-            } else {
-                outObj.scale = parseFloat((1 / scale).toFixed(2));
-            }
-
-            if (outObj.animations) {
-                outObj.animations.forEach(anim => {
-                    if (anim.offsets && Array.isArray(anim.offsets)) {
-                        anim.offsets[0] = Math.round(anim.offsets[0] * scale);
-                        anim.offsets[1] = Math.round(anim.offsets[1] * scale);
-                    }
-                });
-            }
-
-            // Guardar offsets del overlay en el JSON (para acomodación visual)
-            const globalOffX = parseInt(overlayOffsetX.value) || 0;
-            const globalOffY = parseInt(overlayOffsetY.value) || 0;
-            if (globalOffX !== 0 || globalOffY !== 0) {
-                outObj.globalOffset = [globalOffX, globalOffY];
-            }
-
-            // 3. Botón playable: agrega/sobreescribe el campo
-            outObj.playable = playableToggle.checked;
-
-            const outJSON = JSON.stringify(outObj, null, "\t");
-            const jsonBlob = new Blob([outJSON], { type: "application/json" });
-            
-            const jsonLink = document.createElement('a');
-            // 1. Mismo nombre que el archivo JSON original (no charName-low.json)
-            jsonLink.download = jsonFileName || (charName + ".json");
-            jsonLink.href = URL.createObjectURL(jsonBlob);
-            jsonLink.click();
-            setTimeout(() => URL.revokeObjectURL(jsonLink.href), 100);
-            
-        } catch (error) {
-            console.error("Error parsing JSON:", error);
-            alert("Error processing JSON. Is it formatted correctly?");
-        }
-    }
-
-    // --- 3. EXPORTAR PNG ---
-    canvas.toBlob((blob) => {
-        const pngLink = document.createElement('a');
-        pngLink.download = charName + "-low.png";
-        pngLink.href = URL.createObjectURL(blob);
-        pngLink.click();
-        setTimeout(() => URL.revokeObjectURL(pngLink.href), 100);
-
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        canvas.width = 1;
-        canvas.height = 1;
-    }, "image/png");
-
-    localStorage.setItem("lastCharacter", charName);
-    localStorage.setItem("lastScale", scale);
-    historyText.textContent = "Last optimized: " + charName + " (" + scale + "x)";
-}
-
-// --- Extraer cada frame del XML como PNG individual, comprimidos en un ZIP ---
-function extractFrames() {
-    if (!img.src || frames.length === 0) {
-        alert("Upload BOTH PNG and XML first!");
-        return;
-    }
-    if (typeof JSZip === "undefined") {
-        alert("No se pudo cargar JSZip (revisá tu conexión a internet).");
-        return;
-    }
-
-    const scale = parseFloat(scaleSlider.value);
-    const lowRam = document.getElementById('lowRam').checked;
-
-    // Render del atlas completo ya escalado, para recortar desde ahi
-    const fullCanvas = document.createElement('canvas');
-    fullCanvas.width = Math.round(img.width * scale);
-    fullCanvas.height = Math.round(img.height * scale);
-    const fullCtx = fullCanvas.getContext('2d');
-    fullCtx.imageSmoothingEnabled = !lowRam;
-    fullCtx.drawImage(img, 0, 0, fullCanvas.width, fullCanvas.height);
-
-    const zip = new JSZip();
-    const blobPromises = [];
-
-    frames.forEach(f => {
-        const sx = fixZero(f.x, scale);
-        const sy = fixZero(f.y, scale);
-        const sw = Math.round(f.width * scale);
-        const sh = Math.round(f.height * scale);
-        if (sw <= 0 || sh <= 0) return;
-
-        const frameCanvas = document.createElement('canvas');
-        frameCanvas.width = sw;
-        frameCanvas.height = sh;
-        const frameCtx = frameCanvas.getContext('2d');
-        frameCtx.imageSmoothingEnabled = !lowRam;
-        frameCtx.drawImage(fullCanvas, sx, sy, sw, sh, 0, 0, sw, sh);
-
-        const p = new Promise(resolve => {
-            frameCanvas.toBlob(blob => {
-                if (blob) zip.file(f.name + ".png", blob);
-                resolve();
-            }, "image/png");
-        });
-        blobPromises.push(p);
-    });
-
-    Promise.all(blobPromises).then(() => {
-        zip.generateAsync({ type: "blob" }).then(zipBlob => {
-            const zipLink = document.createElement('a');
-            zipLink.download = charName + "-frames.zip";
-            zipLink.href = URL.createObjectURL(zipBlob);
-            zipLink.click();
-            setTimeout(() => URL.revokeObjectURL(zipLink.href), 100);
-        });
-    });
-}
+window.addEventListener('load', () => {
+  drawOsuPreview(); drawFnfPreview(); drawDensity();
+});
 </script>
 
+<!-- ffmpeg.wasm desde CDN -->
+<script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.6/dist/umd/ffmpeg.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@ffmpeg/util@0.12.1/dist/umd/index.js"></script>
 </body>
 </html>
