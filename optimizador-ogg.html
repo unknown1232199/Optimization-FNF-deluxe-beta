@@ -116,7 +116,9 @@ function makeZip(items){
 let createOggEncoder=null;
 async function loadEncoder(){
   if(createOggEncoder)return;
-  let m;\n  try{m=await import("https://cdn.jsdelivr.net/npm/wasm-media-encoders@0.7.0/+esm")}\n  catch(first){m=await import("https://esm.sh/wasm-media-encoders@0.7.0")}
+  let m;
+  try{m=await import("https://cdn.jsdelivr.net/npm/wasm-media-encoders@0.7.0/+esm")}
+  catch(first){m=await import("https://esm.sh/wasm-media-encoders@0.7.0")}
   createOggEncoder=m.createOggEncoder||(m.default&&m.default.createOggEncoder);
   if(!createOggEncoder)throw new Error("El codificador Ogg no está disponible en esta versión.");
 }
@@ -143,7 +145,8 @@ async function optimize(file,ctx,q){
 
 $("go").onclick=async()=>{
   const q=parseFloat($("q").value),keep=$("keep").checked;
-  if(!files.length)return;\n  $("go").disabled=true;$("prog").hidden=false;$("res").hidden=true;$("err").textContent="";
+  if(!files.length)return;
+  $("go").disabled=true;$("prog").hidden=false;$("res").hidden=true;$("err").textContent="";
   $("list").innerHTML="";$("dl").innerHTML="";
   let wl=null;try{wl=await navigator.wakeLock.request("screen")}catch(e){}
   try{
@@ -153,7 +156,10 @@ $("go").onclick=async()=>{
     $("err").textContent="No se pudo cargar el codificador (necesita internet la primera vez): "+e.message;
     $("go").disabled=false;return;
   }
-  const AudioCtx=window.AudioContext||window.webkitAudioContext;\n  if(!AudioCtx){$("err").textContent="Este navegador no permite procesar audio. Probá con Chrome o Firefox actualizado.";$("go").disabled=false;if(wl)try{wl.release()}catch(e){}return}\n  let ctx;\n  try{ctx=new AudioCtx({sampleRate:44100})}catch(e){ctx=new AudioCtx()}
+  const AudioCtx=window.AudioContext||window.webkitAudioContext;
+  if(!AudioCtx){$("err").textContent="Este navegador no permite procesar audio. Probá con Chrome o Firefox actualizado.";$("go").disabled=false;if(wl)try{wl.release()}catch(e){}return}
+  let ctx;
+  try{ctx=new AudioCtx({sampleRate:44100})}catch(e){ctx=new AudioCtx()}
   const done=[],used=new Set();let before=0,after=0,fail=0;
   for(let i=0;i<files.length;i++){
     const f=files[i];
