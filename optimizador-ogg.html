@@ -55,7 +55,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .file.ok span:last-child{color:var(--good)}
 .file.warn span:last-child{color:#ffd18a}
 .foot{text-align:center;color:#756c8d;font-size:.78rem;margin:18px 0}
-@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+.card{backdrop-filter:blur(12px)}\n.drop{padding:30px 18px}.drop:focus-within{outline:2px solid var(--purple);outline-offset:3px}\n.actions button{min-width:145px}\n#selection{padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:#ffffff06}\n#progress{border-color:#6b5594}#status{letter-spacing:-.01em}\n#result{border-color:#4d8d78}\n.file{align-items:flex-start}.file span:last-child{text-align:right}\n@media(max-width:520px){body{padding:18px 12px 32px}.card{padding:16px;border-radius:18px}.actions{display:grid;grid-template-columns:1fr}.actions button{width:100%}.progress-wrap{width:124px;height:124px}.progress-wrap svg{width:124px;height:124px}}\n@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 </style>
 </head>
 <body>
@@ -78,7 +78,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
     <input id="folder" type="file" webkitdirectory multiple hidden>
   </div>
   <div id="selection">Todavía no seleccionaste archivos.</div>
-  <div class="note"><span>🛡️</span><span><b>Audio intacto:</b> no se cambia a mono, no se remuestrea ni se vuelve a codificar. Se mantienen los nombres y las carpetas, incluidos Voices, Player, Opponent y Vocals.</span></div>
+  <div class="note"><span>🛡️</span><span><b>Audio intacto:</b> no se cambia a mono, no se remuestrea ni se vuelve a codificar. Se mantienen los nombres y las carpetas, incluidos Voices, Player, Opponent y Vocals. Si el motor de FNF no admite el OGG optimizado, se recomienda conservar el original.</span></div>
   <button class="primary" id="start" disabled style="width:100%;margin-top:18px">Optimizar archivos</button>
 </section>
 <section class="card" id="progress" aria-live="polite">
@@ -141,62 +141,87 @@ function setProgress(value){
   $("bar").style.width=p+"%";
   $("progressCircle").style.strokeDashoffset=(326.73-(326.73*p/100)).toString();
 }
-function runWorker(file){
+function runWorker(targetWorker,file){
   return new Promise((resolve,reject)=>{
     const onMessage=e=>{cleanup();if(typeof e.data==="string")reject(new Error(e.data));else resolve(e.data)};
     const onError=e=>{cleanup();reject(new Error(e.message||"Falló el worker de OptiVorbis."))};
-    const cleanup=()=>{worker.removeEventListener("message",onMessage);worker.removeEventListener("error",onError)};
-    worker.addEventListener("message",onMessage);worker.addEventListener("error",onError);worker.postMessage(file);
+    const cleanup=()=>{targetWorker.removeEventListener("message",onMessage);targetWorker.removeEventListener("error",onError)};
+    targetWorker.addEventListener("message",onMessage);targetWorker.addEventListener("error",onError);targetWorker.postMessage(file);
   });
 }
 $("start").onclick=async()=>{
   if(!selected.length)return;
+  const batch=[...selected];
   $("start").disabled=true;$("progress").style.display="block";$("result").style.display="none";
-  $("fileList").textContent="";setProgress(0);
-  const output=[],used=new Set();let originalTotal=0,optimizedTotal=0,failed=0,unchanged=0;
+  $("fileList").textContent="";setProgress(2);
+  const output=new Array(batch.length),rows=new Array(batch.length),used=new Set();
+  let originalTotal=0,optimizedTotal=0,failed=0,unchanged=0,done=0,next=0;
+  const workerCount=Math.min(2,batch.length);
+  let workers=[];
   try{
-    $("status").textContent="Iniciando OptiVorbis…";
-    $("detail").textContent="Cargando el motor de optimización sin pérdida.";
-    worker=new Worker("./optivorbis-worker.js");
+    $("status").textContent="Preparando procesamiento por tandas…";
+    $("detail").textContent="Se procesarán todos los archivos automáticamente, con hasta "+workerCount+" procesos simultáneos.";
+    workers=Array.from({length:workerCount},()=>new Worker("./optivorbis-worker.js"));
     await tick();
-    for(let i=0;i<selected.length;i++){
-      const file=selected[i],path=file.webkitRelativePath||file.name;
-      $("status").textContent="Optimizando archivo "+(i+1)+" de "+selected.length;
-      $("detail").textContent=path;
-      let name=path;
-      if(used.has(name)){let n=2,ext=(name.match(/\.(ogg|oga)$/i)||[".ogg"])[0],base=name.slice(0,-ext.length);while(used.has(base+" ("+n+")"+ext))n++;name=base+" ("+n+")"+ext}
-      used.add(name);
-      let blob,optimized=false;
-      try{
-        blob=await runWorker(file);
-        if(blob.size<file.size)optimized=true;
-        else{blob=file;unchanged++}
-      }catch(err){blob=file;failed++}
-      const bytes=new Uint8Array(await blob.arrayBuffer());
-      originalTotal+=file.size;optimizedTotal+=bytes.length;
-      output.push({name,blob,crc:crc32(bytes),size:bytes.length});
-      const row=document.createElement("div");row.className="file "+(optimized?"ok":blob===file?"warn":"");
-      const label=document.createElement("span");label.textContent=name;
-      const state=document.createElement("span");state.textContent=optimized?fmt(file.size)+" → "+fmt(blob.size):"Original conservado";
-      row.append(label,state);$("fileList").prepend(row);
-      setProgress((i+1)/selected.length*100);await tick();
+    async function processQueue(slot){
+      let active=workers[slot];
+      while(true){
+        const i=next++;
+        if(i>=batch.length)return;
+        const file=batch[i],path=file.webkitRelativePath||file.name;
+        $("status").textContent="Procesando todos los OGG · "+done+"/"+batch.length+" terminados";
+        $("detail").textContent="En curso: "+path;
+        let name=path,blob=file,optimized=false;
+        if(used.has(name)){
+          let n=2,ext=(name.match(/\.(ogg|oga)$/i)||[".ogg"])[0],base=name.slice(0,-ext.length);
+          while(used.has(base+" ("+n+")"+ext))n++;
+          name=base+" ("+n+")"+ext;
+        }
+        used.add(name);
+        try{
+          const candidate=await runWorker(active,file);
+          if(!(candidate instanceof Blob)||candidate.size<4)throw new Error("El motor devolvió un archivo vacío o inválido.");
+          const magic=new Uint8Array(await candidate.slice(0,4).arrayBuffer());
+          if(magic[0]!==79||magic[1]!==103||magic[2]!==103||magic[3]!==83)throw new Error("La salida no tiene una cabecera OGG válida.");
+          if(candidate.size<file.size){blob=candidate;optimized=true}else{unchanged++}
+        }catch(err){
+          blob=file;failed++;
+          try{active.terminate()}catch(_){}
+          active=new Worker("./optivorbis-worker.js");workers[slot]=active;
+        }
+        const bytes=new Uint8Array(await blob.arrayBuffer());
+        originalTotal+=file.size;optimizedTotal+=bytes.length;
+        output[i]={name,blob,crc:crc32(bytes),size:bytes.length};
+        const row=document.createElement("div");row.className="file "+(optimized?"ok":blob===file?"warn":"");
+        const label=document.createElement("span");label.textContent=name;
+        const state=document.createElement("span");state.textContent=optimized?fmt(file.size)+" → "+fmt(blob.size):blob===file?"Original conservado":"Sin reducción";
+        row.append(label,state);rows[i]=row;
+        done++;
+        $("status").textContent="Procesando todos los OGG · "+done+"/"+batch.length+" terminados";
+        $("detail").textContent="Último archivo: "+path;
+        setProgress(4+(done/batch.length)*88);
+        await tick();
+      }
     }
-    $("status").textContent="Creando el ZIP…";$("detail").textContent="Empaquetando todos los archivos y sus carpetas.";
+    await Promise.all(workers.map((_,slot)=>processQueue(slot)));
+    $("status").textContent="Creando el ZIP…";$("detail").textContent="Empaquetando todos los archivos y conservando las carpetas.";
     const archive=makeZip(output);
     if(zipUrl)URL.revokeObjectURL(zipUrl);
     zipUrl=URL.createObjectURL(archive);
-    $("download").onclick=()=>{const a=document.createElement("a");a.href=zipUrl;a.download="ogg-optimizados-sin-perdida.zip";document.body.appendChild(a);a.click();a.remove()};
+    $("download").onclick=()=>{const a=document.createElement("a");a.href=zipUrl;a.download="ogg-optimizados-fnf.zip";document.body.appendChild(a);a.click();a.remove()};
+    rows.forEach(row=>{if(row)$("fileList").append(row)});
     const savings=originalTotal?Math.round((1-optimizedTotal/originalTotal)*100):0;
-    $("summary").textContent=savings>0?"Reducción total: "+savings+"%":savings===0?"Audio conservado sin cambios de tamaño":"Los archivos aumentaron "+Math.abs(savings)+"%";
-    $("resultNote").textContent=failed||unchanged?failed+" archivo(s) no compatibles o con error y "+unchanged+" sin reducción; se incluyeron originales intactos.":"Los archivos optimizados se procesaron sin recodificar las muestras de audio.";
-    $("status").textContent="¡Listo!";$("detail").textContent=output.length+" archivo(s) incluidos en un único ZIP.";
+    $("summary").textContent=savings>0?"Reducción total: "+savings+"%":savings===0?"Tamaño conservado":"Los archivos aumentaron "+Math.abs(savings)+"%";
+    $("resultNote").textContent=failed+" archivo(s) con error conservados sin modificar; "+unchanged+" archivo(s) sin reducción. Se incluyeron todos los originales que no pudieron optimizarse.";
+    $("status").textContent="¡Lote terminado!";
+    $("detail").textContent=output.length+" archivo(s) incluidos en un único ZIP.";
     setProgress(100);$("result").style.display="block";
   }catch(err){
     $("status").textContent="No se pudo completar el proceso";
     $("detail").textContent=err.message||String(err);
   }finally{
-    if(worker){worker.terminate();worker=null}
-    $("start").disabled=false;
+    workers.forEach(w=>{try{w.terminate()}catch(_){}});
+    workers=[];$("start").disabled=false;
   }
 };
 </script>
