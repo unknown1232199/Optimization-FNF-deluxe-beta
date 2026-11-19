@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#10120f">
-<title>FNF OGG Lab · Optimizador</title>
+<title>FNF OGG Lab · Organizador</title>
 <style>
 :root{color-scheme:dark;--bg:#10120f;--panel:#191d18;--panel2:#222820;--text:#f1f0e7;--muted:#a2aa9b;--line:#343c31;--purple:#c8f169;--pink:#77d9d1;--good:#a8db72;--bad:#f08070}
 *{box-sizing:border-box}
@@ -128,8 +128,8 @@ button:disabled{opacity:.45;cursor:not-allowed}
 <main>
 <header>
   <div class="logo" aria-hidden="true">♫</div>
-  <h1>FNF / Optimizador OGG</h1>
-  <p class="subtitle">Optimización sin recodificar: conserva las muestras de audio para que las voces y los instrumentales sigan sonando igual.</p>
+  <h1>FNF / Organizador OGG</h1>
+  <p class="subtitle">Prepará un ZIP con tus OGG originales, sin modificar el audio ni la estructura de los archivos.</p>
 </header>
 <section class="card">
   <div class="drop" id="drop">
@@ -144,15 +144,15 @@ button:disabled{opacity:.45;cursor:not-allowed}
     <input id="folder" type="file" webkitdirectory multiple hidden>
   </div>
   <div id="selection">Todavía no seleccionaste archivos.</div>
-  <div class="note"><span>🛡️</span><span><b>Audio intacto:</b> no se cambia a mono, no se remuestrea ni se vuelve a codificar. Se mantienen los nombres y las carpetas, incluidos Voices, Player, Opponent y Vocals. Si el motor de FNF no admite el OGG optimizado, se recomienda conservar el original.</span></div>
-  <button class="primary" id="start" disabled style="width:100%;margin-top:18px">Optimizar archivos</button>
+  <div class="note"><span>🛡️</span><span><b>Sin modificaciones:</b> no se optimiza, recodifica, remuestrea ni convierte a mono. Los OGG se copian tal cual, conservando nombres y carpetas como Voices, Player, Opponent y Vocals.</span></div>
+  <button class="primary" id="start" disabled style="width:100%;margin-top:18px">Preparar ZIP</button>
 </section>
 <section class="card" id="progress" aria-live="polite">
   <div class="progress-wrap">
     <svg viewBox="0 0 120 120" aria-hidden="true"><defs><linearGradient id="grad"><stop stop-color="#c8f169"/><stop offset="1" stop-color="#77d9d1"/></linearGradient></defs><circle class="track" cx="60" cy="60" r="52"/><circle class="progress" id="progressCircle" cx="60" cy="60" r="52"/></svg>
     <div class="spinner"></div><div class="percent" id="percent">0%</div>
   </div>
-  <div id="status">Preparando optimizador…</div>
+  <div id="status">Preparando archivos…</div>
   <div id="detail">No cierres esta pestaña durante el proceso.</div>
   <button class="secondary" id="wakeToggle" type="button" aria-pressed="false" style="margin-top:12px">☀ Mantener pantalla encendida: desactivado</button>
   <div id="wakeInfo" style="color:var(--muted);font-size:.78rem;margin-top:6px">Activá esta opción para evitar que la pantalla se suspenda mientras esta pestaña esté visible.</div>
@@ -164,9 +164,8 @@ button:disabled{opacity:.45;cursor:not-allowed}
   <button class="primary" id="download">Descargar ZIP</button>
   <div id="fileList"></div>
 </section>
-<p class="foot">El procesamiento se realiza localmente en tu navegador. Los archivos no se suben a ningún servidor.</p>
+<p class="foot">Todo se procesa localmente en tu navegador. Los archivos no se suben a ningún servidor.</p>
 </main>
-<script src="./assets/ogg/fnf-ogg-validator.js"></script>
 <script>
 const $=id=>document.getElementById(id);
 let selected=[],worker=null,zipUrl=null,wakeLock=null,wakeEnabled=false,processing=false;
@@ -231,14 +230,6 @@ function setProgress(value){
   $("bar").style.width=p+"%";
   $("progressCircle").style.strokeDashoffset=(326.73-(326.73*p/100)).toString();
 }
-function runWorker(targetWorker,file){
-  return new Promise((resolve,reject)=>{
-    const onMessage=e=>{cleanup();if(typeof e.data==="string")reject(new Error(e.data));else resolve(e.data)};
-    const onError=e=>{cleanup();reject(new Error(e.message||"Falló el worker de OptiVorbis."))};
-    const cleanup=()=>{targetWorker.removeEventListener("message",onMessage);targetWorker.removeEventListener("error",onError)};
-    targetWorker.addEventListener("message",onMessage);targetWorker.addEventListener("error",onError);targetWorker.postMessage(file);
-  });
-}
 $("start").onclick=async()=>{
   if(!selected.length)return;
   const batch=[...selected];
@@ -246,73 +237,48 @@ $("start").onclick=async()=>{
   $("start").disabled=true;$("progress").style.display="block";$("result").style.display="none";
   $("fileList").textContent="";setProgress(2);
   const output=new Array(batch.length),rows=new Array(batch.length),used=new Set();
-  let originalTotal=0,optimizedTotal=0,failed=0,unchanged=0,verified=0,done=0,next=0;
-  const workerCount=1;
-  let workers=[];
+  let originalTotal=0,done=0;
   try{
-    $("status").textContent="Preparando procesamiento por tandas…";
-    $("detail").textContent="Se procesarán todos los archivos automáticamente, con "+workerCount+" proceso a la vez para evitar que OptiVorbis compita por recursos.";
-    workers=Array.from({length:workerCount},()=>new Worker("./assets/ogg/optivorbis-worker.js"));
-    await tick();
-    async function processQueue(slot){
-      let active=workers[slot];
-      while(true){
-        const i=next++;
-        if(i>=batch.length)return;
-        const file=batch[i],path=file.webkitRelativePath||file.name;
-        $("status").textContent="Procesando todas las canciones · "+done+"/"+batch.length+" terminadas";
-        $("detail").textContent="Archivo actual: "+path;
-        let name=path,blob=file,optimized=false;
-        if(used.has(name)){
-          let n=2,ext=(name.match(/\.(ogg|oga)$/i)||[".ogg"])[0],base=name.slice(0,-ext.length);
-          while(used.has(base+" ("+n+")"+ext))n++;
-          name=base+" ("+n+")"+ext;
-        }
-        used.add(name);
-        try{
-          const candidate=await runWorker(active,file);
-          if(!(candidate instanceof Blob)||candidate.size<4)throw new Error("El motor devolvió un archivo vacío o inválido.");
-          await window.FNFOggValidator.compare(file,candidate);
-          verified++;
-          if(candidate.size<file.size){blob=candidate;optimized=true}else{unchanged++}
-        }catch(err){
-          blob=file;failed++;
-          try{active.terminate()}catch(_){}
-          active=new Worker("./assets/ogg/optivorbis-worker.js");workers[slot]=active;
-        }
-        const bytes=new Uint8Array(await blob.arrayBuffer());
-        originalTotal+=file.size;optimizedTotal+=bytes.length;
-        output[i]={name,blob,crc:crc32(bytes),size:bytes.length};
-        const row=document.createElement("div");row.className="file "+(optimized?"ok":blob===file?"warn":"");
-        const label=document.createElement("span");label.textContent=name;
-        const state=document.createElement("span");state.textContent=optimized?fmt(file.size)+" → "+fmt(blob.size):blob===file?"Original conservado":"Sin reducción";
-        row.append(label,state);rows[i]=row;
-        done++;
-        $("status").textContent="Procesando todas las canciones · "+done+"/"+batch.length+" terminadas";
-        $("detail").textContent="Último archivo: "+path;
-        setProgress(4+(done/batch.length)*88);
-        await tick();
+    $("status").textContent="Preparando ZIP…";
+    $("detail").textContent="Los archivos se copiarán sin alterar su contenido.";
+    for(let i=0;i<batch.length;i++){
+      const file=batch[i],path=file.webkitRelativePath||file.name;
+      let name=path;
+      if(used.has(name)){
+        let n=2,ext=(name.match(/\\.(ogg|oga)$/i)||[".ogg"])[0],base=name.slice(0,-ext.length);
+        while(used.has(base+" ("+n+")"+ext))n++;
+        name=base+" ("+n+")"+ext;
       }
+      used.add(name);
+      const bytes=new Uint8Array(await file.arrayBuffer());
+      originalTotal+=file.size;
+      output[i]={name,blob:file,crc:crc32(bytes),size:bytes.length};
+      const row=document.createElement("div");row.className="file ok";
+      const label=document.createElement("span");label.textContent=name;
+      const state=document.createElement("span");state.textContent=fmt(file.size)+" · Original";
+      row.append(label,state);rows[i]=row;
+      done++;
+      $("status").textContent="Preparando archivos · "+done+"/"+batch.length;
+      $("detail").textContent="Incluido sin cambios: "+path;
+      setProgress(4+(done/batch.length)*88);
+      await tick();
     }
-    await Promise.all(workers.map((_,slot)=>processQueue(slot)));
-    $("status").textContent="Creando el ZIP…";$("detail").textContent="Empaquetando todos los archivos y conservando las carpetas.";
+    $("status").textContent="Creando el ZIP…";$("detail").textContent="Conservando nombres y carpetas.";
     const archive=makeZip(output);
     if(zipUrl)URL.revokeObjectURL(zipUrl);
     zipUrl=URL.createObjectURL(archive);
-    $("download").onclick=()=>{const a=document.createElement("a");a.href=zipUrl;a.download="ogg-optimizados-fnf.zip";document.body.appendChild(a);a.click();a.remove()};
+    $("download").onclick=()=>{const a=document.createElement("a");a.href=zipUrl;a.download="ogg-originales-fnf.zip";document.body.appendChild(a);a.click();a.remove()};
     rows.forEach(row=>{if(row)$("fileList").append(row)});
-    const savings=originalTotal?Math.round((1-optimizedTotal/originalTotal)*100):0;
-    $("summary").textContent=savings>0?"Reducción total: "+savings+"%":savings===0?"Tamaño conservado":"Los archivos aumentaron "+Math.abs(savings)+"%";
-    $("resultNote").textContent=verified+" archivo(s) superaron la verificación OGG (CRC, secuencias, pistas, canales y frecuencia); "+failed+" archivo(s) con error o validación fallida se conservaron sin modificar; "+unchanged+" archivo(s) válidos sin reducción. Se incluyeron todos los originales que no pudieron optimizarse.";
-    $("status").textContent="¡Todas las canciones están listas!";
-    $("detail").textContent=output.length+" archivo(s) incluidos en un único ZIP.";
+    $("summary").textContent=batch.length+" archivo(s) preparados";
+    $("resultNote").textContent="Se conservaron los "+batch.length+" OGG/OGA originales, sin optimización ni cambios en el audio. Tamaño total: "+fmt(originalTotal)+".";
+    $("status").textContent="¡El ZIP está listo!";
+    $("detail").textContent=output.length+" archivo(s) incluidos sin modificar.";
     setProgress(100);$("result").style.display="block";
   }catch(err){
     $("status").textContent="No se pudo completar el proceso";
     $("detail").textContent=err.message||String(err);
   }finally{
-    workers.forEach(w=>{try{w.terminate()}catch(_){}});
-    workers=[];$("start").disabled=false;processing=false;await releaseWakeLock();
+    $("start").disabled=false;processing=false;await releaseWakeLock();
   }
 };
 </script>
