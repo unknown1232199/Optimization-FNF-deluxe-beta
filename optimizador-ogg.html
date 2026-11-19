@@ -159,7 +159,7 @@ $("go").onclick=async()=>{
   const AudioCtx=window.AudioContext||window.webkitAudioContext;
   if(!AudioCtx){$("err").textContent="Este navegador no permite procesar audio. Probá con Chrome o Firefox actualizado.";$("go").disabled=false;if(wl)try{wl.release()}catch(e){}return}
   let ctx;
-  try{ctx=new AudioCtx({sampleRate:44100})}catch(e){ctx=new AudioCtx()}
+  ctx=new AudioCtx()
   const done=[],used=new Set();let before=0,after=0,fail=0;
   for(let i=0;i<files.length;i++){
     const f=files[i];
