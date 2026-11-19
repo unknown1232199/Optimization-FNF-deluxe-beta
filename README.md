@@ -22,11 +22,12 @@ Procesa archivos de audio OGG/OGA de mods de FNF desde el navegador.
 - Procesamiento por lotes con hasta dos tareas simultáneas.
 - Mantiene nombres y rutas de carpetas al crear el ZIP.
 - Usa **OptiVorbis** mediante WebAssembly para intentar optimizar el contenedor OGG sin recodificar el audio con pérdida.
-- Si el resultado no es válido, falla o no reduce el tamaño, conserva el archivo original.
+- Una capa propia de verificación comprueba CRC de páginas OGG, secuencias, cantidad de pistas, canales y frecuencia antes de aceptar el resultado.
+- Si el resultado no supera la verificación, falla o no reduce el tamaño, conserva el archivo original.
 - Incluye progreso general de **todas las canciones** y opción para mantener la pantalla encendida mientras la pestaña está visible (si el navegador admite Screen Wake Lock).
 - El procesamiento se realiza localmente: los archivos seleccionados no se envían a un servidor.
 
-**Audio y compatibilidad:** el optimizador no mezcla pistas, no convierte a mono ni cambia intencionalmente la separación entre instrumental y voces. Aun así, distintos engines o decodificadores pueden interpretar de forma diferente un OGG remuxeado. Probá siempre el resultado en tu mod y conservá una copia de seguridad, especialmente de `Voices`, `Player`, `Opponent` y `Vocals`.
+**Audio y compatibilidad:** el verificador comprueba integridad estructural y que se mantengan la cantidad de pistas, canales y frecuencia; no compara muestras PCM ni sustituye una prueba auditiva. El optimizador no mezcla pistas, no convierte a mono ni cambia intencionalmente la separación entre instrumental y voces. Aun así, distintos engines o decodificadores pueden interpretar de forma diferente un OGG remuxeado. Probá siempre el resultado en tu mod y conservá una copia de seguridad, especialmente de `Voices`, `Player`, `Opponent` y `Vocals`.
 
 [Abrir el optimizador OGG](https://unknown1232199.github.io/Optimization-FNF-deluxe-beta/optimizador-ogg.html)
 
@@ -82,7 +83,7 @@ Optimization-FNF-deluxe-beta/
 |---|---|
 | `index.html` | Página principal y accesos a las herramientas |
 | `optimizador-ogg.html` | Interfaz del optimizador OGG |
-| `assets/ogg/optivorbis-worker.js` | Worker que procesa los archivos OGG |
+| `assets/ogg/fnf-ogg-validator.js` | Verificador propio de integridad y estructura OGG antes de aceptar una salida |\n| `assets/ogg/optivorbis-worker.js` | Worker que procesa los archivos OGG con OptiVorbis |
 | `assets/ogg/*.wasm` | Módulo WebAssembly utilizado por OptiVorbis |
 | `Lo/convertidor-osu.html` | Convertidor de osu! / OSZ a Psych Engine |
 | `OPTIVORBIS-LICENSE.txt` | Licencia del componente OptiVorbis |
