@@ -96,6 +96,8 @@ button:disabled{opacity:.45;cursor:not-allowed}
   </div>
   <div id="status">Preparando optimizador…</div>
   <div id="detail">No cierres esta pestaña durante el proceso.</div>
+  <button class="secondary" id="wakeToggle" type="button" aria-pressed="false" style="margin-top:12px">☀ Mantener pantalla encendida: desactivado</button>
+  <div id="wakeInfo" style="color:var(--muted);font-size:.78rem;margin-top:6px">Activá esta opción para evitar que la pantalla se suspenda mientras esta pestaña esté visible.</div>
   <div class="meter"><i id="bar"></i></div>
 </section>
 <section class="card" id="result">
@@ -108,9 +110,30 @@ button:disabled{opacity:.45;cursor:not-allowed}
 </main>
 <script>
 const $=id=>document.getElementById(id);
-let selected=[],worker=null,zipUrl=null;
+let selected=[],worker=null,zipUrl=null,wakeLock=null,wakeEnabled=false,processing=false;
 const fmt=n=>n>=1048576?(n/1048576).toFixed(2)+" MB":(n/1024).toFixed(1)+" KB";
 const tick=()=>new Promise(resolve=>setTimeout(resolve,0));
+async function acquireWakeLock(){
+  if(!wakeEnabled||!processing||document.visibilityState!=="visible"||!("wakeLock" in navigator))return;
+  try{
+    wakeLock=await navigator.wakeLock.request("screen");
+    $("wakeInfo").textContent="Pantalla activa mientras esta pestaña permanezca visible.";
+    wakeLock.addEventListener("release",()=>{wakeLock=null;if(wakeEnabled&&processing)$("wakeInfo").textContent="El navegador liberó el bloqueo; se intentará reactivar al volver a esta pestaña.";});
+  }catch(err){
+    $("wakeInfo").textContent="No se pudo activar en este navegador. Mantené esta pestaña abierta y revisá el ahorro de batería.";
+  }
+}
+async function releaseWakeLock(){
+  if(wakeLock){try{await wakeLock.release()}catch(_){}wakeLock=null;}
+}
+$("wakeToggle").onclick=async()=>{
+  wakeEnabled=!wakeEnabled;
+  $("wakeToggle").setAttribute("aria-pressed",String(wakeEnabled));
+  $("wakeToggle").textContent="☀ Mantener pantalla encendida: "+(wakeEnabled?"activado":"desactivado");
+  if(wakeEnabled){await acquireWakeLock();if(!("wakeLock" in navigator))$("wakeInfo").textContent="Tu navegador no admite Screen Wake Lock. Podés mantener la pantalla activa desde los ajustes del dispositivo.";}
+  else{$("wakeInfo").textContent="La pantalla puede suspenderse según los ajustes del dispositivo.";await releaseWakeLock();}
+};
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")acquireWakeLock();});
 function choose(list){
   selected=[...list].filter(f=>/\.(ogg|oga)$/i.test(f.name));
   const total=selected.reduce((s,f)=>s+f.size,0);
@@ -160,6 +183,7 @@ function runWorker(targetWorker,file){
 $("start").onclick=async()=>{
   if(!selected.length)return;
   const batch=[...selected];
+  processing=true;await acquireWakeLock();
   $("start").disabled=true;$("progress").style.display="block";$("result").style.display="none";
   $("fileList").textContent="";setProgress(2);
   const output=new Array(batch.length),rows=new Array(batch.length),used=new Set();
@@ -177,8 +201,8 @@ $("start").onclick=async()=>{
         const i=next++;
         if(i>=batch.length)return;
         const file=batch[i],path=file.webkitRelativePath||file.name;
-        $("status").textContent="Procesando todos los OGG · "+done+"/"+batch.length+" terminados";
-        $("detail").textContent="En curso: "+path;
+        $("status").textContent="Procesando todas las canciones · "+done+"/"+batch.length+" terminadas";
+        $("detail").textContent="Archivo actual: "+path;
         let name=path,blob=file,optimized=false;
         if(used.has(name)){
           let n=2,ext=(name.match(/\.(ogg|oga)$/i)||[".ogg"])[0],base=name.slice(0,-ext.length);
@@ -205,7 +229,7 @@ $("start").onclick=async()=>{
         const state=document.createElement("span");state.textContent=optimized?fmt(file.size)+" → "+fmt(blob.size):blob===file?"Original conservado":"Sin reducción";
         row.append(label,state);rows[i]=row;
         done++;
-        $("status").textContent="Procesando todos los OGG · "+done+"/"+batch.length+" terminados";
+        $("status").textContent="Procesando todas las canciones · "+done+"/"+batch.length+" terminadas";
         $("detail").textContent="Último archivo: "+path;
         setProgress(4+(done/batch.length)*88);
         await tick();
@@ -221,7 +245,7 @@ $("start").onclick=async()=>{
     const savings=originalTotal?Math.round((1-optimizedTotal/originalTotal)*100):0;
     $("summary").textContent=savings>0?"Reducción total: "+savings+"%":savings===0?"Tamaño conservado":"Los archivos aumentaron "+Math.abs(savings)+"%";
     $("resultNote").textContent=failed+" archivo(s) con error conservados sin modificar; "+unchanged+" archivo(s) sin reducción. Se incluyeron todos los originales que no pudieron optimizarse.";
-    $("status").textContent="¡Lote terminado!";
+    $("status").textContent="¡Todas las canciones están listas!";
     $("detail").textContent=output.length+" archivo(s) incluidos en un único ZIP.";
     setProgress(100);$("result").style.display="block";
   }catch(err){
@@ -229,7 +253,7 @@ $("start").onclick=async()=>{
     $("detail").textContent=err.message||String(err);
   }finally{
     workers.forEach(w=>{try{w.terminate()}catch(_){}});
-    workers=[];$("start").disabled=false;
+    workers=[];$("start").disabled=false;processing=false;await releaseWakeLock();
   }
 };
 </script>
