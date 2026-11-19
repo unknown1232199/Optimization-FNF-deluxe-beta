@@ -44,18 +44,14 @@ button:disabled{opacity:.45}
   </div>
   <div id="sel" class="s" style="margin:10px 0 0">Ningún archivo elegido.</div>
 
-  <label for="q">Nivel de compresión</label>
+  <label for="q">Calidad de audio</label>
   <select id="q">
-    <option value="4">Equilibrado (~128 kbps): casi igual al original</option>
-    <option value="3" selected>Ligero (~112 kbps): recomendado para el juego</option>
-    <option value="2">Muy ligero (~96 kbps): el que más reduce</option>
+    <option value="8">Alta</option>
+    <option value="9">Muy alta</option>
+    <option value="10" selected>Máxima (recomendada para conservar las voces)</option>
   </select>
 
-  <div class="chk"><input id="vm" type="checkbox" checked><span>Voices en mono (las voces no necesitan estéreo y pesan casi la mitad)</span></div>
   <div class="chk"><input id="keep" type="checkbox" checked><span>Dejar el original si el resultado no es más liviano</span></div>
-
-  <label for="mb">Tamaño de cada ZIP (MB)</label>
-  <input id="mb" type="number" value="120" min="20" max="400">
 
   <button id="go" disabled>Optimizar</button>
 </div>
@@ -125,19 +121,11 @@ async function loadEncoder(){
   if(!createOggEncoder)throw new Error("El codificador Ogg no está disponible en esta versión.");
 }
 
-async function optimize(file,ctx,q,monoVoices){
+async function optimize(file,ctx,q){
   const ab=await file.arrayBuffer();
   const buf=await ctx.decodeAudioData(ab.slice(0));
-  const wantMono=buf.numberOfChannels===1||(monoVoices&&/voices|voces|voz/i.test(file.name));
-  const L=buf.getChannelData(0);
-  let chans;
-  if(wantMono){
-    if(buf.numberOfChannels>1){
-      const R=buf.getChannelData(1),M=new Float32Array(L.length);
-      for(let i=0;i<M.length;i++)M[i]=(L[i]+R[i])*0.5;
-      chans=[M];
-    }else chans=[L];
-  }else chans=[L,buf.getChannelData(1)];
+  const chans=Array.from({length:buf.numberOfChannels},(_,i)=>buf.getChannelData(i));
+  if(chans.length>2)throw new Error("Este codificador no admite más de dos canales; se conservará el archivo original.");
   const enc=await createOggEncoder();
   enc.configure({sampleRate:buf.sampleRate,channels:chans.length,vbrQuality:q});
   const out=[];let total=0;
@@ -154,8 +142,7 @@ async function optimize(file,ctx,q,monoVoices){
 }
 
 $("go").onclick=async()=>{
-  const q=parseFloat($("q").value),mv=$("vm").checked,keep=$("keep").checked;
-  const partMax=Math.max(20,parseInt($("mb").value)||120)*1048576;
+  const q=parseFloat($("q").value),keep=$("keep").checked;
   if(!files.length)return;\n  $("go").disabled=true;$("prog").hidden=false;$("res").hidden=true;$("err").textContent="";
   $("list").innerHTML="";$("dl").innerHTML="";
   let wl=null;try{wl=await navigator.wakeLock.request("screen")}catch(e){}
@@ -174,11 +161,11 @@ $("go").onclick=async()=>{
     $("bar").firstElementChild.style.width=(i/files.length*100)+"%";
     await tick();
     let name=f.webkitRelativePath||f.name;
-    if(used.has(name)){let n=2,b=name.replace(/\.ogg$/i,"");while(used.has(`${b} (${n}).ogg`))n++;name=`${b} (${n}).ogg`}
+    if(used.has(name)){let n=2,b=name.replace(/\.(ogg|oga)$/i,""),ext=(name.match(/\.(ogg|oga)$/i)||[".ogg"])[0];while(used.has(`${b} (${n})${ext}`))n++;name=`${b} (${n})${ext}` }
     used.add(name);
     let data,kept=false;
     try{
-      const o=await optimize(f,ctx,q,mv);
+      const o=await optimize(f,ctx,q);
       if(keep&&o.length>=f.size*0.97){data=new Uint8Array(await f.arrayBuffer());kept=true}else data=o;
     }catch(e){
       fail++;data=new Uint8Array(await f.arrayBuffer());kept=true;
@@ -192,20 +179,15 @@ $("go").onclick=async()=>{
   }
   $("bar").firstElementChild.style.width="100%";
   $("st").textContent="Listo. Armando los ZIP…";await tick();
-  // dividir en partes
-  const groups=[];let cur=[],cs=0;
-  for(const d of done){if(cur.length&&cs+d.size>partMax){groups.push(cur);cur=[];cs=0}cur.push(d);cs+=d.size}
-  if(cur.length)groups.push(cur);
-  groups.forEach((g,k)=>{
-    const url=URL.createObjectURL(makeZip(g));
-    const sz=g.reduce((a,x)=>a+x.size,0);
-    const b=document.createElement("button");
-    b.textContent=`Descargar parte ${k+1} de ${groups.length} (${g.length} archivos · ${fmt(sz)})`;
-    b.onclick=()=>{const a=document.createElement("a");a.href=url;a.download=`ogg-optimizados-parte${k+1}.zip`;document.body.appendChild(a);a.click();a.remove()};
-    $("dl").appendChild(b);
-  });
-  const sv=Math.round((1-after/before)*100);
-  $("sum").textContent=`${fmt(before)} → ${fmt(after)} (-${sv}%)`;
+  // Un único ZIP con todos los archivos; los OGG ya están comprimidos.
+  const groups=[done];
+  const url=URL.createObjectURL(makeZip(groups[0]));
+  const b=document.createElement("button");
+  b.textContent=`Descargar ZIP (${groups[0].length} archivos)`;
+  b.onclick=()=>{const a=document.createElement("a");a.href=url;a.download="ogg-optimizados.zip";document.body.appendChild(a);a.click();a.remove()};
+  $("dl").appendChild(b);
+  const sv=before?Math.round((1-after/before)*100):0;
+  $("sum").textContent=`${fmt(before)} → ${fmt(after)} (${sv>=0?"ahorro "+sv+"%":"aumentó "+Math.abs(sv)+"%"})`;
   $("sub").textContent=fail?`${fail} archivo(s) no se pudieron procesar y se incluyeron sin cambios. Revisá que sean OGG válidos.`:"Los nombres de archivo se mantienen iguales. Descomprimí y reemplazá los originales.";
   $("st").textContent="Terminado.";$("res").hidden=false;$("go").disabled=false;
   try{await ctx.close()}catch(e){}if(wl)try{wl.release()}catch(e){}
