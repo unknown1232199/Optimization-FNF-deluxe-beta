@@ -3,200 +3,201 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Optimizador de Ogg para FNF</title>
+<meta name="theme-color" content="#100d1d">
+<title>Optimizador OGG · FNF</title>
 <style>
-:root{--bg:#f6f3fb;--card:#fff;--tx:#1d1730;--mu:#6b6480;--ac:#7a3cff;--ac2:#ffffff;--ok:#1a8f5a;--bd:#ddd6ee}
-@media (prefers-color-scheme:dark){:root{--bg:#120f1d;--card:#1c1830;--tx:#efeafc;--mu:#a59dbd;--ac:#a57bff;--ac2:#120f1d;--ok:#4cd69a;--bd:#2f2948}}
+:root{color-scheme:dark;--bg:#0d0b16;--panel:#171326;--panel2:#201a35;--text:#f5f0ff;--muted:#aaa1c3;--line:#342a50;--purple:#a78bfa;--pink:#f0abfc;--good:#65e6b2;--bad:#ff8eaa}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:16px;max-width:640px;margin-inline:auto}
-h1{font-size:1.4rem;margin:.2rem 0 .3rem}
-p.s{color:var(--mu);margin:0 0 14px;font-size:.92rem}
-.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:14px;margin-bottom:12px}
-label{display:block;font-size:.88rem;color:var(--mu);margin:10px 0 4px}
-select,input[type=number]{width:100%;padding:10px;border-radius:8px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);font-size:1rem}
-.chk{display:flex;gap:8px;align-items:center;margin-top:10px;font-size:.95rem;color:var(--tx)}
-.chk input{width:20px;height:20px}
-button{font:inherit;font-weight:600;border:0;border-radius:10px;padding:12px 14px;background:var(--ac);color:var(--ac2);width:100%;margin-top:10px}
-button.g{background:transparent;color:var(--ac);border:1.5px solid var(--ac)}
-button:disabled{opacity:.45}
-.row{display:flex;gap:8px}.row button{margin-top:10px}
-#bar{height:10px;border-radius:6px;background:var(--bd);overflow:hidden;margin:10px 0 4px}
-#bar i{display:block;height:100%;width:0;background:var(--ac);transition:width .2s}
-#st{font-size:.9rem;color:var(--mu)}
-.sum{font-size:1.5rem;font-weight:700;color:var(--ok)}
-.li{display:flex;justify-content:space-between;gap:8px;padding:6px 0;border-bottom:1px solid var(--bd);font-size:.85rem}
-.li b{font-weight:500;overflow-wrap:anywhere}.li span{white-space:nowrap;color:var(--mu)}
-.li.k span{color:var(--tx)}
-#list{max-height:300px;overflow:auto}
-.err{color:#d6335a;font-size:.9rem}
+body{margin:0;min-height:100vh;padding:28px 16px 48px;background:radial-gradient(ellipse at 50% -10%,#38245f 0,transparent 48%),var(--bg);color:var(--text);font:15px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{width:min(100%,720px);margin:auto}
+header{text-align:center;margin:10px 0 26px}
+.logo{display:inline-grid;place-items:center;width:58px;height:58px;border-radius:19px;background:linear-gradient(135deg,#a78bfa,#e879f9);box-shadow:0 10px 36px #a78bfa44;font-size:27px}
+h1{font-size:clamp(1.65rem,5vw,2.2rem);letter-spacing:-.04em;margin:14px 0 4px}
+.subtitle{color:var(--muted);max-width:540px;margin:0 auto}
+.card{background:linear-gradient(145deg,#1b1630,#151122);border:1px solid var(--line);border-radius:22px;padding:20px;margin:14px 0;box-shadow:0 18px 48px #0003}
+.drop{border:1.5px dashed #76619d;border-radius:17px;padding:24px 16px;text-align:center;background:#a78bfa09;transition:.2s}
+.drop.drag{border-color:var(--pink);background:#e879f922}
+.drop .symbol{font-size:30px}
+.drop strong{display:block;font-size:1.03rem;margin:6px 0}
+.drop p{color:var(--muted);margin:2px 0 14px;font-size:.9rem}
+.actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+button{font:inherit;font-weight:700;border:0;border-radius:13px;padding:12px 17px;cursor:pointer;transition:transform .15s,opacity .15s}
+button:active{transform:scale(.98)}
+button:disabled{opacity:.45;cursor:not-allowed}
+.primary{color:#1b1029;background:linear-gradient(100deg,#c4b5fd,#f0abfc);box-shadow:0 8px 24px #c084fc33}
+.secondary{color:var(--text);background:#2a2241;border:1px solid #4a3b68}
+#selection{color:var(--muted);font-size:.88rem;text-align:center;margin:14px 0 0;overflow-wrap:anywhere}
+.note{display:flex;gap:10px;align-items:flex-start;color:var(--muted);font-size:.86rem;margin-top:16px}
+.note b{color:var(--good)}
+#progress{display:none;text-align:center}
+.progress-wrap{width:142px;height:142px;margin:8px auto 16px;position:relative;display:grid;place-items:center}
+.progress-wrap svg{width:142px;height:142px;transform:rotate(-90deg)}
+.track{fill:none;stroke:#382e50;stroke-width:9}
+.progress{fill:none;stroke:url(#grad);stroke-width:9;stroke-linecap:round;stroke-dasharray:326.73;stroke-dashoffset:326.73;transition:stroke-dashoffset .25s}
+.spinner{position:absolute;inset:5px;border:2px solid transparent;border-top-color:#f0abfc;border-right-color:#a78bfa;border-radius:50%;animation:spin 1.25s linear infinite;opacity:.8}
+.percent{position:absolute;font-size:1.65rem;font-weight:800;font-variant-numeric:tabular-nums}
+@keyframes spin{to{transform:rotate(360deg)}}
+#status{font-weight:700;font-size:1.02rem}
+#detail{color:var(--muted);font-size:.88rem;margin-top:4px;overflow-wrap:anywhere}
+.meter{height:7px;background:#302743;border-radius:99px;overflow:hidden;margin:16px 0 5px}
+.meter>i{display:block;height:100%;width:0;background:linear-gradient(90deg,#a78bfa,#f0abfc);transition:width .25s}
+#result{display:none}
+.result-head{display:flex;align-items:center;gap:12px}
+.check{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;background:#65e6b21a;color:var(--good);font-size:22px}
+.result-head h2{font-size:1.15rem;margin:0}
+#summary{color:var(--good);font-size:1.25rem;font-weight:800;margin:16px 0 3px}
+#resultNote{color:var(--muted);font-size:.88rem}
+#download{width:100%;margin:16px 0 4px}
+#fileList{max-height:240px;overflow:auto;margin-top:14px}
+.file{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--line);font-size:.83rem}
+.file span:first-child{overflow-wrap:anywhere;min-width:0}
+.file span:last-child{white-space:nowrap;color:var(--muted)}
+.file.ok span:last-child{color:var(--good)}
+.file.warn span:last-child{color:#ffd18a}
+.foot{text-align:center;color:#756c8d;font-size:.78rem;margin:18px 0}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 </style>
 </head>
 <body>
-<h1>Optimizador de Ogg para FNF</h1>
-<p class="s">Reduce el peso de tus canciones .ogg directamente en el celular. Nada se sube a internet: todo se procesa en tu navegador.</p>
-
-<div class="card">
-  <input id="f1" type="file" accept=".ogg,.oga,audio/ogg,application/ogg" multiple hidden>
-  <input id="f2" type="file" webkitdirectory multiple hidden>
-  <div class="row">
-    <button id="b1" class="g">Elegir archivos</button>
-    <button id="b2" class="g">Elegir carpeta</button>
+<main>
+<header>
+  <div class="logo" aria-hidden="true">♫</div>
+  <h1>Optimizador OGG</h1>
+  <p class="subtitle">Optimización sin recodificar: conserva las muestras de audio para que las voces y los instrumentales sigan sonando igual.</p>
+</header>
+<section class="card">
+  <div class="drop" id="drop">
+    <div class="symbol">🎧</div>
+    <strong>Elegí tus archivos OGG</strong>
+    <p>Podés seleccionar varios archivos o una carpeta completa de la canción/mod.</p>
+    <div class="actions">
+      <button class="secondary" id="pickFiles">Elegir archivos</button>
+      <button class="secondary" id="pickFolder">Elegir carpeta</button>
+    </div>
+    <input id="files" type="file" accept=".ogg,.oga,audio/ogg,application/ogg" multiple hidden>
+    <input id="folder" type="file" webkitdirectory multiple hidden>
   </div>
-  <div id="sel" class="s" style="margin:10px 0 0">Ningún archivo elegido.</div>
-
-  <label for="q">Calidad de audio</label>
-  <select id="q">
-    <option value="8">Alta</option>
-    <option value="9">Muy alta</option>
-    <option value="10" selected>Máxima (recomendada para conservar las voces)</option>
-  </select>
-
-  <div class="chk"><input id="keep" type="checkbox" checked><span>Dejar el original si el resultado no es más liviano</span></div>
-
-  <button id="go" disabled>Optimizar</button>
-</div>
-
-<div class="card" id="prog" hidden>
-  <div id="bar"><i></i></div>
-  <div id="st"></div>
-  <div id="err" class="err"></div>
-</div>
-
-<div class="card" id="res" hidden>
-  <div class="sum" id="sum"></div>
-  <div id="sub" class="s"></div>
-  <div id="dl"></div>
-  <div id="list"></div>
-</div>
-
+  <div id="selection">Todavía no seleccionaste archivos.</div>
+  <div class="note"><span>🛡️</span><span><b>Audio intacto:</b> no se cambia a mono, no se remuestrea ni se vuelve a codificar. Se mantienen los nombres y las carpetas, incluidos Voices, Player, Opponent y Vocals.</span></div>
+  <button class="primary" id="start" disabled style="width:100%;margin-top:18px">Optimizar archivos</button>
+</section>
+<section class="card" id="progress" aria-live="polite">
+  <div class="progress-wrap">
+    <svg viewBox="0 0 120 120" aria-hidden="true"><defs><linearGradient id="grad"><stop stop-color="#a78bfa"/><stop offset="1" stop-color="#f0abfc"/></linearGradient></defs><circle class="track" cx="60" cy="60" r="52"/><circle class="progress" id="progressCircle" cx="60" cy="60" r="52"/></svg>
+    <div class="spinner"></div><div class="percent" id="percent">0%</div>
+  </div>
+  <div id="status">Preparando optimizador…</div>
+  <div id="detail">No cierres esta pestaña durante el proceso.</div>
+  <div class="meter"><i id="bar"></i></div>
+</section>
+<section class="card" id="result">
+  <div class="result-head"><div class="check">✓</div><div><h2>Proceso terminado</h2><div style="color:var(--muted);font-size:.84rem">Tu paquete está listo para descargar.</div></div></div>
+  <div id="summary"></div><div id="resultNote"></div>
+  <button class="primary" id="download">Descargar ZIP</button>
+  <div id="fileList"></div>
+</section>
+<p class="foot">El procesamiento se realiza localmente en tu navegador. Los archivos no se suben a ningún servidor.</p>
+</main>
 <script>
 const $=id=>document.getElementById(id);
-let files=[];
-const fmt=b=>b>=1048576?(b/1048576).toFixed(2)+" MB":(b/1024).toFixed(0)+" KB";
-const tick=()=>new Promise(r=>setTimeout(r,0));
-
-$("b1").onclick=()=>$("f1").click();
-$("b2").onclick=()=>$("f2").click();
-function pick(e){
-  files=[...e.target.files].filter(f=>/\.(ogg|oga)$/i.test(f.name));
-  const t=files.reduce((a,f)=>a+f.size,0);
-  $("sel").textContent=files.length?files.length+" archivos .ogg · "+fmt(t):"No se encontraron archivos .ogg.";
-  $("go").disabled=!files.length;
+let selected=[],worker=null,zipUrl=null;
+const fmt=n=>n>=1048576?(n/1048576).toFixed(2)+" MB":(n/1024).toFixed(1)+" KB";
+const tick=()=>new Promise(resolve=>setTimeout(resolve,0));
+function choose(list){
+  selected=[...list].filter(f=>/\.(ogg|oga)$/i.test(f.name));
+  const total=selected.reduce((s,f)=>s+f.size,0);
+  $("selection").textContent=selected.length?selected.length+" archivo(s) OGG · "+fmt(total):"No se encontraron archivos .ogg/.oga.";
+  $("start").disabled=!selected.length;
 }
-$("f1").onchange=pick;$("f2").onchange=pick;
+$("pickFiles").onclick=()=>$("files").click();
+$("pickFolder").onclick=()=>$("folder").click();
+$("files").onchange=e=>choose(e.target.files);
+$("folder").onchange=e=>choose(e.target.files);
+const drop=$("drop");
+["dragenter","dragover"].forEach(type=>drop.addEventListener(type,e=>{e.preventDefault();drop.classList.add("drag")}));
+["dragleave","drop"].forEach(type=>drop.addEventListener(type,e=>{e.preventDefault();drop.classList.remove("drag")}));
+drop.addEventListener("drop",e=>choose(e.dataTransfer.files));
 
-// ---------- ZIP sin compresión (los Ogg ya vienen comprimidos) ----------
-const CT=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})();
-function crc32(u){let c=0xFFFFFFFF;for(let i=0;i<u.length;i++)c=CT[(c^u[i])&255]^(c>>>8);return(c^0xFFFFFFFF)>>>0}
+const CRC_TABLE=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})();
+function crc32(data){let c=0xFFFFFFFF;for(let i=0;i<data.length;i++)c=CRC_TABLE[(c^data[i])&255]^(c>>>8);return(c^0xFFFFFFFF)>>>0}
 function makeZip(items){
-  const enc=new TextEncoder(),parts=[],central=[];let off=0;
-  for(const it of items){
-    const nm=enc.encode(it.name);
-    const h=new DataView(new ArrayBuffer(30));
+  const enc=new TextEncoder(),local=[],central=[];let offset=0;
+  for(const item of items){
+    const name=enc.encode(item.name),h=new DataView(new ArrayBuffer(30));
     h.setUint32(0,0x04034b50,true);h.setUint16(4,20,true);h.setUint16(6,0x0800,true);h.setUint16(8,0,true);
-    h.setUint16(10,0,true);h.setUint16(12,0x5821,true);h.setUint32(14,it.crc,true);
-    h.setUint32(18,it.size,true);h.setUint32(22,it.size,true);h.setUint16(26,nm.length,true);h.setUint16(28,0,true);
-    parts.push(h.buffer,nm,it.blob);
+    h.setUint16(10,0,true);h.setUint16(12,0x5821,true);h.setUint32(14,item.crc,true);h.setUint32(18,item.size,true);h.setUint32(22,item.size,true);h.setUint16(26,name.length,true);h.setUint16(28,0,true);
+    local.push(h.buffer,name,item.blob);
     const c=new DataView(new ArrayBuffer(46));
-    c.setUint32(0,0x02014b50,true);c.setUint16(4,20,true);c.setUint16(6,20,true);c.setUint16(8,0x0800,true);
-    c.setUint16(10,0,true);c.setUint16(12,0,true);c.setUint16(14,0x5821,true);c.setUint32(16,it.crc,true);
-    c.setUint32(20,it.size,true);c.setUint32(24,it.size,true);c.setUint16(28,nm.length,true);
-    c.setUint32(42,off,true);
-    central.push(c.buffer,nm);
-    off+=30+nm.length+it.size;
+    c.setUint32(0,0x02014b50,true);c.setUint16(4,20,true);c.setUint16(6,20,true);c.setUint16(8,0x0800,true);c.setUint16(10,0,true);c.setUint16(12,0,true);c.setUint16(14,0x5821,true);c.setUint32(16,item.crc,true);c.setUint32(20,item.size,true);c.setUint32(24,item.size,true);c.setUint16(28,name.length,true);c.setUint32(42,offset,true);
+    central.push(c.buffer,name);offset+=30+name.length+item.size;
   }
-  let cs=0;central.forEach(x=>cs+=x.byteLength||x.length);
-  const e=new DataView(new ArrayBuffer(22));
-  e.setUint32(0,0x06054b50,true);e.setUint16(8,items.length,true);e.setUint16(10,items.length,true);
-  e.setUint32(12,cs,true);e.setUint32(16,off,true);
-  return new Blob([...parts,...central,e.buffer],{type:"application/zip"});
+  const centralSize=central.reduce((s,p)=>s+p.byteLength,0),end=new DataView(new ArrayBuffer(22));
+  end.setUint32(0,0x06054b50,true);end.setUint16(8,items.length,true);end.setUint16(10,items.length,true);end.setUint32(12,centralSize,true);end.setUint32(16,offset,true);
+  return new Blob([...local,...central,end.buffer],{type:"application/zip"});
 }
-
-// ---------- Procesamiento ----------
-let createOggEncoder=null;
-async function loadEncoder(){
-  if(createOggEncoder)return;
-  let m;
-  try{m=await import("https://cdn.jsdelivr.net/npm/wasm-media-encoders@0.7.0/+esm")}
-  catch(first){m=await import("https://esm.sh/wasm-media-encoders@0.7.0")}
-  createOggEncoder=m.createOggEncoder||(m.default&&m.default.createOggEncoder);
-  if(!createOggEncoder)throw new Error("El codificador Ogg no está disponible en esta versión.");
+function setProgress(value){
+  const p=Math.max(0,Math.min(100,value));
+  $("percent").textContent=Math.round(p)+"%";
+  $("bar").style.width=p+"%";
+  $("progressCircle").style.strokeDashoffset=(326.73-(326.73*p/100)).toString();
 }
-
-async function optimize(file,ctx,q){
-  const ab=await file.arrayBuffer();
-  const buf=await ctx.decodeAudioData(ab.slice(0));
-  const chans=Array.from({length:buf.numberOfChannels},(_,i)=>buf.getChannelData(i));
-  if(chans.length>2)throw new Error("Este codificador no admite más de dos canales; se conservará el archivo original.");
-  const enc=await createOggEncoder();
-  enc.configure({sampleRate:buf.sampleRate,channels:chans.length,vbrQuality:q});
-  const out=[];let total=0;
-  const step=buf.sampleRate*2;
-  for(let i=0;i<L.length;i+=step){
-    const r=enc.encode(chans.map(c=>c.subarray(i,Math.min(i+step,c.length))));
-    if(r.length){out.push(r.slice());total+=r.length}
-    if((i/step)%8===7)await tick();
-  }
-  const fin=enc.finalize();
-  if(fin.length){out.push(fin.slice());total+=fin.length}
-  const all=new Uint8Array(total);let p=0;for(const c of out){all.set(c,p);p+=c.length}
-  return all;
+function runWorker(file){
+  return new Promise((resolve,reject)=>{
+    const onMessage=e=>{cleanup();if(typeof e.data==="string")reject(new Error(e.data));else resolve(e.data)};
+    const onError=e=>{cleanup();reject(new Error(e.message||"Falló el worker de OptiVorbis."))};
+    const cleanup=()=>{worker.removeEventListener("message",onMessage);worker.removeEventListener("error",onError)};
+    worker.addEventListener("message",onMessage);worker.addEventListener("error",onError);worker.postMessage(file);
+  });
 }
-
-$("go").onclick=async()=>{
-  const q=parseFloat($("q").value),keep=$("keep").checked;
-  if(!files.length)return;
-  $("go").disabled=true;$("prog").hidden=false;$("res").hidden=true;$("err").textContent="";
-  $("list").innerHTML="";$("dl").innerHTML="";
-  let wl=null;try{wl=await navigator.wakeLock.request("screen")}catch(e){}
+$("start").onclick=async()=>{
+  if(!selected.length)return;
+  $("start").disabled=true;$("progress").style.display="block";$("result").style.display="none";
+  $("fileList").textContent="";setProgress(0);
+  const output=[],used=new Set();let originalTotal=0,optimizedTotal=0,failed=0,unchanged=0;
   try{
-    $("st").textContent="Cargando codificador…";
-    await loadEncoder();
-  }catch(e){
-    $("err").textContent="No se pudo cargar el codificador (necesita internet la primera vez): "+e.message;
-    $("go").disabled=false;return;
-  }
-  const AudioCtx=window.AudioContext||window.webkitAudioContext;
-  if(!AudioCtx){$("err").textContent="Este navegador no permite procesar audio. Probá con Chrome o Firefox actualizado.";$("go").disabled=false;if(wl)try{wl.release()}catch(e){}return}
-  let ctx;
-  ctx=new AudioCtx()
-  const done=[],used=new Set();let before=0,after=0,fail=0;
-  for(let i=0;i<files.length;i++){
-    const f=files[i];
-    $("st").textContent=`(${i+1}/${files.length}) ${f.name}`;
-    $("bar").firstElementChild.style.width=(i/files.length*100)+"%";
+    $("status").textContent="Iniciando OptiVorbis…";
+    $("detail").textContent="Cargando el motor de optimización sin pérdida.";
+    worker=new Worker("./optivorbis-worker.js");
     await tick();
-    let name=f.webkitRelativePath||f.name;
-    if(used.has(name)){let n=2,b=name.replace(/\.(ogg|oga)$/i,""),ext=(name.match(/\.(ogg|oga)$/i)||[".ogg"])[0];while(used.has(`${b} (${n})${ext}`))n++;name=`${b} (${n})${ext}` }
-    used.add(name);
-    let data,kept=false;
-    try{
-      const o=await optimize(f,ctx,q);
-      if(keep&&o.length>=f.size*0.97){data=new Uint8Array(await f.arrayBuffer());kept=true}else data=o;
-    }catch(e){
-      fail++;data=new Uint8Array(await f.arrayBuffer());kept=true;
+    for(let i=0;i<selected.length;i++){
+      const file=selected[i],path=file.webkitRelativePath||file.name;
+      $("status").textContent="Optimizando archivo "+(i+1)+" de "+selected.length;
+      $("detail").textContent=path;
+      let name=path;
+      if(used.has(name)){let n=2,ext=(name.match(/\.(ogg|oga)$/i)||[".ogg"])[0],base=name.slice(0,-ext.length);while(used.has(base+" ("+n+")"+ext))n++;name=base+" ("+n+")"+ext}
+      used.add(name);
+      let blob,optimized=false;
+      try{
+        blob=await runWorker(file);
+        if(blob.size<file.size)optimized=true;
+        else{blob=file;unchanged++}
+      }catch(err){blob=file;failed++}
+      const bytes=new Uint8Array(await blob.arrayBuffer());
+      originalTotal+=file.size;optimizedTotal+=bytes.length;
+      output.push({name,blob,crc:crc32(bytes),size:bytes.length});
+      const row=document.createElement("div");row.className="file "+(optimized?"ok":blob===file?"warn":"");
+      const label=document.createElement("span");label.textContent=name;
+      const state=document.createElement("span");state.textContent=optimized?fmt(file.size)+" → "+fmt(blob.size):"Original conservado";
+      row.append(label,state);$("fileList").prepend(row);
+      setProgress((i+1)/selected.length*100);await tick();
     }
-    before+=f.size;after+=data.length;
-    done.push({name,blob:new Blob([data]),crc:crc32(data),size:data.length});
-    const pc=Math.round((1-data.length/f.size)*100);
-    const li=document.createElement("div");li.className="li"+(kept?"":" k");
-    li.innerHTML=`<b></b><span>${fmt(f.size)} → ${fmt(data.length)} (${kept?"sin cambios":"-"+pc+"%"})</span>`;
-    li.firstChild.textContent=name;$("list").prepend(li);
+    $("status").textContent="Creando el ZIP…";$("detail").textContent="Empaquetando todos los archivos y sus carpetas.";
+    const archive=makeZip(output);
+    if(zipUrl)URL.revokeObjectURL(zipUrl);
+    zipUrl=URL.createObjectURL(archive);
+    $("download").onclick=()=>{const a=document.createElement("a");a.href=zipUrl;a.download="ogg-optimizados-sin-perdida.zip";document.body.appendChild(a);a.click();a.remove()};
+    const savings=originalTotal?Math.round((1-optimizedTotal/originalTotal)*100):0;
+    $("summary").textContent=savings>0?"Reducción total: "+savings+"%":savings===0?"Audio conservado sin cambios de tamaño":"Los archivos aumentaron "+Math.abs(savings)+"%";
+    $("resultNote").textContent=failed||unchanged?failed+" archivo(s) no compatibles o con error y "+unchanged+" sin reducción; se incluyeron originales intactos.":"Los archivos optimizados se procesaron sin recodificar las muestras de audio.";
+    $("status").textContent="¡Listo!";$("detail").textContent=output.length+" archivo(s) incluidos en un único ZIP.";
+    setProgress(100);$("result").style.display="block";
+  }catch(err){
+    $("status").textContent="No se pudo completar el proceso";
+    $("detail").textContent=err.message||String(err);
+  }finally{
+    if(worker){worker.terminate();worker=null}
+    $("start").disabled=false;
   }
-  $("bar").firstElementChild.style.width="100%";
-  $("st").textContent="Listo. Armando los ZIP…";await tick();
-  // Un único ZIP con todos los archivos; los OGG ya están comprimidos.
-  const groups=[done];
-  const url=URL.createObjectURL(makeZip(groups[0]));
-  const b=document.createElement("button");
-  b.textContent=`Descargar ZIP (${groups[0].length} archivos)`;
-  b.onclick=()=>{const a=document.createElement("a");a.href=url;a.download="ogg-optimizados.zip";document.body.appendChild(a);a.click();a.remove()};
-  $("dl").appendChild(b);
-  const sv=before?Math.round((1-after/before)*100):0;
-  $("sum").textContent=`${fmt(before)} → ${fmt(after)} (${sv>=0?"ahorro "+sv+"%":"aumentó "+Math.abs(sv)+"%"})`;
-  $("sub").textContent=fail?`${fail} archivo(s) no se pudieron procesar y se incluyeron sin cambios. Revisá que sean OGG válidos.`:"Los nombres de archivo se mantienen iguales. Descomprimí y reemplazá los originales.";
-  $("st").textContent="Terminado.";$("res").hidden=false;$("go").disabled=false;
-  try{await ctx.close()}catch(e){}if(wl)try{wl.release()}catch(e){}
 };
 </script>
 </body>
