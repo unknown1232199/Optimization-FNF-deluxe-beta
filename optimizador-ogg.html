@@ -251,7 +251,7 @@ $("start").onclick=async()=>{
   try{
     $("status").textContent="Preparando procesamiento por tandas…";
     $("detail").textContent="Se procesarán todos los archivos automáticamente, con hasta "+workerCount+" procesos simultáneos.";
-    workers=Array.from({length:workerCount},()=>new Worker("./optivorbis-worker.js"));
+    workers=Array.from({length:workerCount},()=>new Worker("./assets/ogg/optivorbis-worker.js"));
     await tick();
     async function processQueue(slot){
       let active=workers[slot];
@@ -277,7 +277,7 @@ $("start").onclick=async()=>{
         }catch(err){
           blob=file;failed++;
           try{active.terminate()}catch(_){}
-          active=new Worker("./optivorbis-worker.js");workers[slot]=active;
+          active=new Worker("./assets/ogg/optivorbis-worker.js");workers[slot]=active;
         }
         const bytes=new Uint8Array(await blob.arrayBuffer());
         originalTotal+=file.size;optimizedTotal+=bytes.length;
