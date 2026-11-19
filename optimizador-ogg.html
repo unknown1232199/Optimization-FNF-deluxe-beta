@@ -245,7 +245,7 @@ $("start").onclick=async()=>{
       const file=batch[i],path=file.webkitRelativePath||file.name;
       let name=path;
       if(used.has(name)){
-        let n=2,ext=(name.match(/\\.(ogg|oga)$/i)||[".ogg"])[0],base=name.slice(0,-ext.length);
+        let n=2,ext=(name.match(/\.(ogg|oga)$/i)||[".ogg"])[0],base=name.slice(0,-ext.length);
         while(used.has(base+" ("+n+")"+ext))n++;
         name=base+" ("+n+")"+ext;
       }
