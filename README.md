@@ -41,7 +41,7 @@ Convierte beatmaps y packs compatibles de osu! en charts para **Psych Engine 1.0
 
 La compatibilidad depende del contenido del beatmap y de las opciones elegidas. Revisá los archivos generados y probalos dentro de tu proyecto.
 
-[Abrir el convertidor osu!](https://unknown1232199.github.io/Optimization-FNF-deluxe-beta/Lo/)
+[Abrir el convertidor osu!](https://unknown1232199.github.io/Optimization-FNF-deluxe-beta/Lo/convertidor-osu.html)
 
 ---
 
@@ -84,7 +84,7 @@ Optimization-FNF-deluxe-beta/
 | `optimizador-ogg.html` | Interfaz del optimizador OGG |
 | `assets/ogg/optivorbis-worker.js` | Worker que procesa los archivos OGG |
 | `assets/ogg/*.wasm` | Módulo WebAssembly utilizado por OptiVorbis |
-| `Lo/index.html` | Convertidor de osu! / OSZ a Psych Engine |
+| `Lo/convertidor-osu.html` | Convertidor de osu! / OSZ a Psych Engine |
 | `OPTIVORBIS-LICENSE.txt` | Licencia del componente OptiVorbis |
 
 ---
