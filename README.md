@@ -19,7 +19,7 @@ Pequeña colección de herramientas web para modders de **Friday Night Funkin'**
 Procesa archivos de audio OGG/OGA de mods de FNF desde el navegador.
 
 - Selección de varios archivos o de una carpeta completa.
-- Procesamiento por lotes con hasta dos tareas simultáneas.
+- Procesamiento secuencial con una sola instancia de OptiVorbis: un OGG a la vez.
 - Mantiene nombres y rutas de carpetas al crear el ZIP.
 - Usa **OptiVorbis** mediante WebAssembly para intentar optimizar el contenedor OGG sin recodificar el audio con pérdida.
 - Una capa propia de verificación comprueba CRC de páginas OGG, secuencias, cantidad de pistas, canales y frecuencia antes de aceptar el resultado.
