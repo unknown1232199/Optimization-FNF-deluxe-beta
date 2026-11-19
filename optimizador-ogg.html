@@ -3,44 +3,44 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#100d1d">
-<title>Optimizador OGG · FNF</title>
+<meta name="theme-color" content="#10120f">
+<title>FNF OGG Lab · Optimizador</title>
 <style>
-:root{color-scheme:dark;--bg:#0d0b16;--panel:#171326;--panel2:#201a35;--text:#f5f0ff;--muted:#aaa1c3;--line:#342a50;--purple:#a78bfa;--pink:#f0abfc;--good:#65e6b2;--bad:#ff8eaa}
+:root{color-scheme:dark;--bg:#10120f;--panel:#191d18;--panel2:#222820;--text:#f1f0e7;--muted:#a2aa9b;--line:#343c31;--purple:#c8f169;--pink:#77d9d1;--good:#a8db72;--bad:#f08070}
 *{box-sizing:border-box}
-body{margin:0;min-height:100vh;padding:28px 16px 48px;background:radial-gradient(ellipse at 50% -10%,#38245f 0,transparent 48%),var(--bg);color:var(--text);font:15px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif}
+body{margin:0;min-height:100vh;padding:20px 16px 34px;background:radial-gradient(ellipse at 50% -10%,#34452a 0,transparent 48%),var(--bg);color:var(--text);font:15px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif}
 main{width:min(100%,720px);margin:auto}
-header{text-align:center;margin:10px 0 26px}
-.logo{display:inline-grid;place-items:center;width:58px;height:58px;border-radius:19px;background:linear-gradient(135deg,#a78bfa,#e879f9);box-shadow:0 10px 36px #a78bfa44;font-size:27px}
+header{text-align:center;margin:4px 0 20px}
+.logo{display:inline-grid;place-items:center;width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#c8f169,#77d9d1);box-shadow:0 10px 36px #c8f16944;font-size:21px}
 h1{font-size:clamp(1.65rem,5vw,2.2rem);letter-spacing:-.04em;margin:14px 0 4px}
 .subtitle{color:var(--muted);max-width:540px;margin:0 auto}
-.card{background:linear-gradient(145deg,#1b1630,#151122);border:1px solid var(--line);border-radius:22px;padding:20px;margin:14px 0;box-shadow:0 18px 48px #0003}
-.drop{border:1.5px dashed #76619d;border-radius:17px;padding:24px 16px;text-align:center;background:#a78bfa09;transition:.2s}
-.drop.drag{border-color:var(--pink);background:#e879f922}
+.card{background:linear-gradient(145deg,#1c2419,#171c16);border:1px solid var(--line);border-radius:10px;padding:17px;margin:11px 0;box-shadow:0 18px 48px #0003}
+.drop{border:1.5px dashed #667b47;border-radius:8px;padding:20px 14px;text-align:center;background:#c8f16909;transition:.2s}
+.drop.drag{border-color:var(--pink);background:#77d9d122}
 .drop .symbol{font-size:30px}
 .drop strong{display:block;font-size:1.03rem;margin:6px 0}
 .drop p{color:var(--muted);margin:2px 0 14px;font-size:.9rem}
 .actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
-button{font:inherit;font-weight:700;border:0;border-radius:13px;padding:12px 17px;cursor:pointer;transition:transform .15s,opacity .15s}
+button{font:inherit;font-weight:700;border:0;border-radius:7px;padding:10px 15px;cursor:pointer;transition:transform .15s,opacity .15s}
 button:active{transform:scale(.98)}
 button:disabled{opacity:.45;cursor:not-allowed}
-.primary{color:#1b1029;background:linear-gradient(100deg,#c4b5fd,#f0abfc);box-shadow:0 8px 24px #c084fc33}
-.secondary{color:var(--text);background:#2a2241;border:1px solid #4a3b68}
+.primary{color:#1b1029;background:linear-gradient(100deg,#c8f169,#77d9d1);box-shadow:0 8px 24px #c8f16933}
+.secondary{color:var(--text);background:#26352c;border:1px solid #43523b}
 #selection{color:var(--muted);font-size:.88rem;text-align:center;margin:14px 0 0;overflow-wrap:anywhere}
 .note{display:flex;gap:10px;align-items:flex-start;color:var(--muted);font-size:.86rem;margin-top:16px}
 .note b{color:var(--good)}
 #progress{display:none;text-align:center}
-.progress-wrap{width:142px;height:142px;margin:8px auto 16px;position:relative;display:grid;place-items:center}
-.progress-wrap svg{width:142px;height:142px;transform:rotate(-90deg)}
-.track{fill:none;stroke:#382e50;stroke-width:9}
+.progress-wrap{width:116px;height:116px;margin:8px auto 16px;position:relative;display:grid;place-items:center}
+.progress-wrap svg{width:116px;height:116px;transform:rotate(-90deg)}
+.track{fill:none;stroke:#30382d;stroke-width:9}
 .progress{fill:none;stroke:url(#grad);stroke-width:9;stroke-linecap:round;stroke-dasharray:326.73;stroke-dashoffset:326.73;transition:stroke-dashoffset .25s}
-.spinner{position:absolute;inset:5px;border:2px solid transparent;border-top-color:#f0abfc;border-right-color:#a78bfa;border-radius:50%;animation:spin 1.25s linear infinite;opacity:.8}
+.spinner{position:absolute;inset:5px;border:2px solid transparent;border-top-color:#77d9d1;border-right-color:#c8f169;border-radius:50%;animation:spin 1.25s linear infinite;opacity:.8}
 .percent{position:absolute;font-size:1.65rem;font-weight:800;font-variant-numeric:tabular-nums}
 @keyframes spin{to{transform:rotate(360deg)}}
 #status{font-weight:700;font-size:1.02rem}
 #detail{color:var(--muted);font-size:.88rem;margin-top:4px;overflow-wrap:anywhere}
-.meter{height:7px;background:#302743;border-radius:99px;overflow:hidden;margin:16px 0 5px}
-.meter>i{display:block;height:100%;width:0;background:linear-gradient(90deg,#a78bfa,#f0abfc);transition:width .25s}
+.meter{height:7px;background:#252b24;border-radius:99px;overflow:hidden;margin:16px 0 5px}
+.meter>i{display:block;height:100%;width:0;background:linear-gradient(90deg,#c8f169,#77d9d1);transition:width .25s}
 #result{display:none}
 .result-head{display:flex;align-items:center;gap:12px}
 .check{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;background:#65e6b21a;color:var(--good);font-size:22px}
@@ -53,16 +53,24 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .file span:first-child{overflow-wrap:anywhere;min-width:0}
 .file span:last-child{white-space:nowrap;color:var(--muted)}
 .file.ok span:last-child{color:var(--good)}
-.file.warn span:last-child{color:#ffd18a}
+.file.warn span:last-child{color:#e9bc6a}
 .foot{text-align:center;color:#756c8d;font-size:.78rem;margin:18px 0}
-.card{backdrop-filter:blur(12px)}\n.drop{padding:30px 18px}.drop:focus-within{outline:2px solid var(--purple);outline-offset:3px}\n.actions button{min-width:145px}\n#selection{padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:#ffffff06}\n#progress{border-color:#6b5594}#status{letter-spacing:-.01em}\n#result{border-color:#4d8d78}\n.file{align-items:flex-start}.file span:last-child{text-align:right}\n@media(max-width:520px){body{padding:18px 12px 32px}.card{padding:16px;border-radius:18px}.actions{display:grid;grid-template-columns:1fr}.actions button{width:100%}.progress-wrap{width:124px;height:124px}.progress-wrap svg{width:124px;height:124px}}\n@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+.card{backdrop-filter:blur(12px)}
+.drop{padding:22px 16px}.drop:focus-within{outline:2px solid var(--purple);outline-offset:3px}
+.actions button{min-width:145px}
+#selection{padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:#ffffff06}
+#progress{border-color:#6b5594}#status{letter-spacing:-.01em}
+#result{border-color:#4d8d78}
+.file{align-items:flex-start}.file span:last-child{text-align:right}
+@media(max-width:520px){body{padding:18px 12px 32px}.card{padding:14px;border-radius:10px}.actions{display:grid;grid-template-columns:1fr}.actions button{width:100%}.progress-wrap{width:124px;height:124px}.progress-wrap svg{width:124px;height:124px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 </style>
 </head>
 <body>
 <main>
 <header>
   <div class="logo" aria-hidden="true">♫</div>
-  <h1>Optimizador OGG</h1>
+  <h1>FNF / Optimizador OGG</h1>
   <p class="subtitle">Optimización sin recodificar: conserva las muestras de audio para que las voces y los instrumentales sigan sonando igual.</p>
 </header>
 <section class="card">
@@ -83,7 +91,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
 </section>
 <section class="card" id="progress" aria-live="polite">
   <div class="progress-wrap">
-    <svg viewBox="0 0 120 120" aria-hidden="true"><defs><linearGradient id="grad"><stop stop-color="#a78bfa"/><stop offset="1" stop-color="#f0abfc"/></linearGradient></defs><circle class="track" cx="60" cy="60" r="52"/><circle class="progress" id="progressCircle" cx="60" cy="60" r="52"/></svg>
+    <svg viewBox="0 0 120 120" aria-hidden="true"><defs><linearGradient id="grad"><stop stop-color="#c8f169"/><stop offset="1" stop-color="#77d9d1"/></linearGradient></defs><circle class="track" cx="60" cy="60" r="52"/><circle class="progress" id="progressCircle" cx="60" cy="60" r="52"/></svg>
     <div class="spinner"></div><div class="percent" id="percent">0%</div>
   </div>
   <div id="status">Preparando optimizador…</div>
