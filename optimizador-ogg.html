@@ -247,11 +247,11 @@ $("start").onclick=async()=>{
   $("fileList").textContent="";setProgress(2);
   const output=new Array(batch.length),rows=new Array(batch.length),used=new Set();
   let originalTotal=0,optimizedTotal=0,failed=0,unchanged=0,verified=0,done=0,next=0;
-  const workerCount=Math.min(2,batch.length);
+  const workerCount=1;
   let workers=[];
   try{
     $("status").textContent="Preparando procesamiento por tandas…";
-    $("detail").textContent="Se procesarán todos los archivos automáticamente, con hasta "+workerCount+" procesos simultáneos.";
+    $("detail").textContent="Se procesarán todos los archivos automáticamente, con "+workerCount+" proceso a la vez para evitar que OptiVorbis compita por recursos.";
     workers=Array.from({length:workerCount},()=>new Worker("./assets/ogg/optivorbis-worker.js"));
     await tick();
     async function processQueue(slot){
