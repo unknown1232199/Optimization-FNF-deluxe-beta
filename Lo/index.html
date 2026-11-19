@@ -129,9 +129,9 @@
 
   /* ===== Diseño ===== */
   :root{--bg:#0f0d17;--card:#171424;--field:#0d0b14;--line:#2a2540;--line2:#3d3560;
-    --accent:#a78bfa;--accent2:#f472b6;--green:#6ee7b7;--yellow:#fcd34d;--red:#fca5a5;
+    --accent:#ff66aa;--accent2:#ff9ac8;--green:#6ee7b7;--yellow:#fcd34d;--red:#fca5a5;
     --txt:#ece9f7;--mut:#a39cc0;--mut2:#766f96}
-  body{background:radial-gradient(900px 420px at 50% -120px,rgba(167,139,250,.16),transparent 70%),var(--bg);
+  body{background:radial-gradient(900px 420px at 50% -120px,rgba(255,102,170,.15),transparent 70%),var(--bg);
     font-family:'Inter','Segoe UI',system-ui,sans-serif}
   .hero h1{font-size:22px;letter-spacing:-.2px}
   .hero h1::after{content:"";display:block;width:44px;height:3px;border-radius:2px;margin-top:8px;
@@ -141,29 +141,65 @@
   .card h2::before{content:"";width:3px;height:14px;border-radius:2px;
     background:linear-gradient(180deg,var(--accent),var(--accent2))}
   .drop{border-width:2px;border-radius:12px;padding:34px 16px;transition:border-color .2s,background .2s;
-    background:rgba(167,139,250,.04)}
-  .drop:hover,.drop.over{background:rgba(167,139,250,.1)}
-  input:focus,select:focus{box-shadow:0 0 0 3px rgba(167,139,250,.18)}
+    background:rgba(255,102,170,.04)}
+  .drop:hover,.drop.over{background:rgba(255,102,170,.1)}
+  input:focus,select:focus{box-shadow:0 0 0 3px rgba(255,102,170,.18)}
   .stat .v{color:var(--accent)}
   .btn{border-radius:10px;transition:filter .15s,transform .05s}
   .btn:active:not(:disabled){transform:scale(.98)}
   .btn.primary{background:linear-gradient(135deg,var(--accent),var(--accent2));border:0;color:#140f24}
   .diff-item,.pack-row{border-radius:10px;transition:border-color .15s,background .15s}
   .diff-item:hover,.pack-row:hover{border-color:var(--line2)}
-  .diff-item.active,.pack-row.selected{background:rgba(167,139,250,.08)}
+  .diff-item.active,.pack-row.selected{background:rgba(255,102,170,.08)}
   .diff-item .lead{display:flex;align-items:center;gap:10px;min-width:0}
   .diff-item input{accent-color:var(--accent);width:16px;height:16px;flex-shrink:0}
   .structure .folder{color:var(--accent)}
   .structure .week{color:var(--accent2)}
   .info-banner{border-radius:10px}
-  .tag{background:rgba(167,139,250,.12);color:var(--accent);border-radius:999px;padding:1px 9px}
+  .tag{background:rgba(255,102,170,.12);color:var(--accent);border-radius:999px;padding:1px 9px}
+  .back-link{display:inline-block;margin:0 0 14px;color:var(--mut);text-decoration:none;font:10px var(--mono);letter-spacing:.12em}
+  .back-link:hover{color:var(--accent)}
+  .converter-hero{display:grid;grid-template-columns:minmax(0,1fr) 190px;align-items:center;gap:24px;
+    padding:18px 20px;border:1px solid #493044;border-radius:16px;
+    background:linear-gradient(115deg,rgba(255,102,170,.09),rgba(23,20,36,.96) 55%,#211728)}
+  .hero-kicker{display:flex;align-items:center;gap:9px;color:#ff9ac8;font:9px var(--mono);letter-spacing:.15em}
+  .hero-kicker>span:last-child{color:var(--mut2);margin-left:4px}
+  .osu-dot{width:7px;height:7px;border-radius:50%;background:#ff66aa;box-shadow:0 0 12px #ff66aa}
+  .hero h1{font-size:clamp(25px,4vw,38px);line-height:1.12;margin-top:12px}
+  .hero h1 .osu-word{color:#ff80b8}
+  .hero h1 em{font-style:normal;color:var(--mut);font:500 .52em var(--mono);white-space:nowrap}
+  .converter-copy>p{max-width:660px;color:var(--mut);font-size:12px;margin-top:8px}
+  .format-flow{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:15px;font:10px var(--mono)}
+  .format-flow span,.format-flow strong{padding:5px 8px;border:1px solid #5a3851;border-radius:5px;color:#ffd1e5;background:#ff66aa0d}
+  .format-flow b{color:#ff80b8;font-size:14px}
+  .format-flow strong{background:#ff66aa;color:#21101a;border-color:#ff66aa}
+  .osu-hero-art{height:138px;position:relative;display:grid;place-items:center}
+  .approach-ring,.hit-circle{position:absolute;width:112px;height:112px;border:3px solid #ff66aa;border-radius:50%}
+  .approach-ring{animation:approachPulse 2.4s ease-out infinite}
+  .ring-two{animation-delay:1.2s}
+  .hit-circle{width:72px;height:72px;display:grid;place-items:center;background:#ff66aa;color:#24101b;
+    border:5px solid #ffd4e7;box-shadow:0 0 0 5px #ff66aa55;font:800 17px system-ui}
+  .beat-label{position:absolute;bottom:0;color:#ff9ac8;font:8px var(--mono);letter-spacing:.1em;white-space:nowrap}
+  @keyframes approachPulse{0%{transform:scale(.55);opacity:.9}100%{transform:scale(1.35);opacity:0}}
+  .drop:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+  @media(max-width:620px){.converter-hero{grid-template-columns:1fr;padding:16px}.osu-hero-art{height:118px}.hero h1{font-size:27px}.format-flow{gap:5px}}
+  @media(prefers-reduced-motion:reduce){.approach-ring{animation:none;opacity:.25;transform:scale(1.1)}}
+
 </style>
 </head>
 <body>
 
 <header class="hero">
-  <h1>osu! / .osz / PACK → Psych 1.0.4</h1>
-  <p>Formato <code>psych_v1</code> · notas de 4 campos · audio OGG</p>
+  <a class="back-link" href="../" aria-label="Volver a FNF Tools">← FNF TOOLS</a>
+  <div class="converter-hero">
+    <div class="converter-copy">
+      <div class="hero-kicker"><span class="osu-dot"></span> BEATMAP CONVERTER <span>02 / 02</span></div>
+      <h1><span class="osu-word">osu!</span> → Psych Engine <em>1.0.4</em></h1>
+      <p>Convertí beatmaps de osu! a charts para Friday Night Funkin'. Importá un archivo <code>.osu</code>, un mapa <code>.osz</code> o un pack <code>.zip</code>.</p>
+      <div class="format-flow"><span>.OSU</span><span>.OSZ</span><span>.ZIP</span><b>→</b><strong>PSYCH 1.0.4</strong></div>
+    </div>
+    <div class="osu-hero-art" aria-hidden="true"><div class="approach-ring"></div><div class="approach-ring ring-two"></div><div class="hit-circle">osu!</div><span class="beat-label">HIT / CONVERT / PLAY</span></div>
+  </div>
 </header>
 
 <main>
@@ -173,7 +209,7 @@
 
     <section class="card">
       <h2>1 · Entrada</h2>
-      <div class="drop" id="drop">
+      <div class="drop" id="drop" role="button" tabindex="0" aria-label="Seleccionar beatmap .osu, .osz o pack ZIP">
         <input type="file" id="file" accept=".osu,.osz,.zip" hidden />
         <strong>Arrastra tu .osu, .osz o PACK (.zip)</strong>
         <span>o haz clic para seleccionar</span>
@@ -2178,6 +2214,9 @@ $('btnReset').addEventListener('click', () => {
 const drop = $('drop');
 const fileInput = $('file');
 drop.addEventListener('click', () => fileInput.click());
+drop.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput.click(); }
+});
 drop.addEventListener('dragover', (e) => { e.preventDefault(); drop.classList.add('over'); });
 drop.addEventListener('dragleave', () => drop.classList.remove('over'));
 drop.addEventListener('drop', (e) => {
