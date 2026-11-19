@@ -23,11 +23,25 @@
     .tools{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
     .tool{display:flex;flex-direction:column;min-height:190px;padding:19px;background:linear-gradient(145deg,#1c2419,#171c16);border:1px solid var(--line);color:inherit;text-decoration:none;transition:border-color .18s,transform .18s}
     .tool:hover,.tool:focus-visible{border-color:#829d54;transform:translateY(-2px);outline:none}
+    .tool:focus-visible{box-shadow:0 0 0 3px #c8f16935}
     .toolTop{display:flex;align-items:center;justify-content:space-between;color:var(--lime);font:9px ui-monospace,monospace;letter-spacing:.1em}
     .symbol{width:32px;height:32px;display:grid;place-items:center;border:1px solid #4d6039;border-radius:50%;font-size:17px}
     h2{font:400 27px Georgia,serif;margin:19px 0 6px}
     .tool p{color:var(--muted);font-size:12px;margin:0;max-width:340px}
     .open{margin-top:auto;padding-top:18px;color:var(--cyan);font:9px ui-monospace,monospace;letter-spacing:.1em}
+    .tool.converter{position:relative;overflow:hidden;border-color:#52334b;background:linear-gradient(145deg,#281827,#19151f 72%)}
+    .tool.converter:hover,.tool.converter:focus-visible{border-color:#ff66aa}
+    .tool.converter .toolTop{color:#ff8cbd}
+    .tool.converter .symbol{border-color:#a84b79;color:#ff8cbd;background:#ff66aa12}
+    .tool.converter .open{color:#ff9ac8}
+    .osu-mark{position:absolute;right:18px;top:62px;width:112px;height:112px;border:2px solid #ff66aa;border-radius:50%;opacity:.8;pointer-events:none}
+    .osu-mark:before,.osu-mark:after{content:"";position:absolute;border:2px solid #ff9ac8;border-radius:50%;inset:11px}
+    .osu-mark:after{inset:28px;background:#ff66aa18}
+    .osu-mark i{position:absolute;z-index:1;inset:0;display:grid;place-items:center;color:#ffd4e7;font:700 17px ui-monospace,monospace;font-style:normal}
+    .converter .toolCopy{position:relative;z-index:1;max-width:78%}
+    .converter .toolLabel{display:inline-flex;gap:6px;align-items:center;margin-top:12px;color:#ff9ac8;font:9px ui-monospace,monospace;letter-spacing:.08em}
+    .converter .toolLabel b{color:#ffd4e7;font-weight:600}
+
     footer{display:flex;justify-content:space-between;gap:16px;margin-top:26px;padding-top:14px;border-top:1px solid var(--line);color:#7f8978;font:9px ui-monospace,monospace;letter-spacing:.08em}
     @media(max-width:580px){body{padding:12px 14px 24px}.meta{display:none}.hero{padding:38px 0 26px}.tools{grid-template-columns:1fr}.tool{min-height:160px;padding:16px}h2{margin-top:14px}footer{flex-direction:column;gap:6px}}
     @media(prefers-reduced-motion:reduce){*,*:before,*:after{transition:none!important}}
@@ -109,11 +123,15 @@
       <p>Procesá varios audios o una carpeta completa y descargá el resultado en un ZIP, conservando la estructura.</p>
       <span class="open">ABRIR HERRAMIENTA ↗</span>
     </a>
-    <a class="tool" href="./Lo/">
-      <div class="toolTop"><span>02 / CONVERSIÓN</span><span class="symbol" aria-hidden="true">⇄</span></div>
-      <h2>osu! / OSZ a Psych Engine</h2>
-      <p>Convertí mapas y packs compatibles para Psych Engine 1.0.4.</p>
-      <span class="open">ABRIR HERRAMIENTA ↗</span>
+    <a class="tool converter" href="./Lo/" aria-label="Abrir convertidor de beatmaps osu! a Psych Engine 1.0.4">
+      <div class="toolTop"><span>02 / BEATMAP CONVERTER</span><span class="symbol" aria-hidden="true">↗</span></div>
+      <div class="osu-mark" aria-hidden="true"><i>osu!</i></div>
+      <div class="toolCopy">
+        <h2>osu! → Psych Engine</h2>
+        <p>Convertí beatmaps <b>.osu</b>, mapas <b>.osz</b> y packs ZIP a charts compatibles con Psych Engine 1.0.4.</p>
+        <span class="toolLabel"><b>.OSU</b> / <b>.OSZ</b> / <b>.ZIP</b> <span>→</span> <b>PSYCH 1.0.4</b></span>
+      </div>
+      <span class="open">ABRIR CONVERTIDOR ↗</span>
     </a>
   </section>
   <footer><span>HECHO PARA LA COMUNIDAD MODDER</span><span>LOS ARCHIVOS SE PROCESAN EN TU NAVEGADOR</span></footer>
