@@ -166,6 +166,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
 </section>
 <p class="foot">El procesamiento se realiza localmente en tu navegador. Los archivos no se suben a ningún servidor.</p>
 </main>
+<script src="./assets/ogg/fnf-ogg-validator.js"></script>
 <script>
 const $=id=>document.getElementById(id);
 let selected=[],worker=null,zipUrl=null,wakeLock=null,wakeEnabled=false,processing=false;
@@ -245,7 +246,7 @@ $("start").onclick=async()=>{
   $("start").disabled=true;$("progress").style.display="block";$("result").style.display="none";
   $("fileList").textContent="";setProgress(2);
   const output=new Array(batch.length),rows=new Array(batch.length),used=new Set();
-  let originalTotal=0,optimizedTotal=0,failed=0,unchanged=0,done=0,next=0;
+  let originalTotal=0,optimizedTotal=0,failed=0,unchanged=0,verified=0,done=0,next=0;
   const workerCount=Math.min(2,batch.length);
   let workers=[];
   try{
@@ -271,8 +272,8 @@ $("start").onclick=async()=>{
         try{
           const candidate=await runWorker(active,file);
           if(!(candidate instanceof Blob)||candidate.size<4)throw new Error("El motor devolvió un archivo vacío o inválido.");
-          const magic=new Uint8Array(await candidate.slice(0,4).arrayBuffer());
-          if(magic[0]!==79||magic[1]!==103||magic[2]!==103||magic[3]!==83)throw new Error("La salida no tiene una cabecera OGG válida.");
+          await window.FNFOggValidator.compare(file,candidate);
+          verified++;
           if(candidate.size<file.size){blob=candidate;optimized=true}else{unchanged++}
         }catch(err){
           blob=file;failed++;
@@ -302,7 +303,7 @@ $("start").onclick=async()=>{
     rows.forEach(row=>{if(row)$("fileList").append(row)});
     const savings=originalTotal?Math.round((1-optimizedTotal/originalTotal)*100):0;
     $("summary").textContent=savings>0?"Reducción total: "+savings+"%":savings===0?"Tamaño conservado":"Los archivos aumentaron "+Math.abs(savings)+"%";
-    $("resultNote").textContent=failed+" archivo(s) con error conservados sin modificar; "+unchanged+" archivo(s) sin reducción. Se incluyeron todos los originales que no pudieron optimizarse.";
+    $("resultNote").textContent=verified+" archivo(s) superaron la verificación OGG (CRC, secuencias, pistas, canales y frecuencia); "+failed+" archivo(s) con error o validación fallida se conservaron sin modificar; "+unchanged+" archivo(s) válidos sin reducción. Se incluyeron todos los originales que no pudieron optimizarse.";
     $("status").textContent="¡Todas las canciones están listas!";
     $("detail").textContent=output.length+" archivo(s) incluidos en un único ZIP.";
     setProgress(100);$("result").style.display="block";
