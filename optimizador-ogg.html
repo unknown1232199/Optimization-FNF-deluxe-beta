@@ -36,7 +36,7 @@ button:disabled{opacity:.45}
 <p class="s">Reduce el peso de tus canciones .ogg directamente en el celular. Nada se sube a internet: todo se procesa en tu navegador.</p>
 
 <div class="card">
-  <input id="f1" type="file" accept=".ogg,audio/ogg" multiple hidden>
+  <input id="f1" type="file" accept=".ogg,.oga,audio/ogg,application/ogg" multiple hidden>
   <input id="f2" type="file" webkitdirectory multiple hidden>
   <div class="row">
     <button id="b1" class="g">Elegir archivos</button>
@@ -82,7 +82,7 @@ const tick=()=>new Promise(r=>setTimeout(r,0));
 $("b1").onclick=()=>$("f1").click();
 $("b2").onclick=()=>$("f2").click();
 function pick(e){
-  files=[...e.target.files].filter(f=>/\.ogg$/i.test(f.name));
+  files=[...e.target.files].filter(f=>/\.(ogg|oga)$/i.test(f.name));
   const t=files.reduce((a,f)=>a+f.size,0);
   $("sel").textContent=files.length?files.length+" archivos .ogg · "+fmt(t):"No se encontraron archivos .ogg.";
   $("go").disabled=!files.length;
@@ -120,7 +120,7 @@ function makeZip(items){
 let createOggEncoder=null;
 async function loadEncoder(){
   if(createOggEncoder)return;
-  const m=await import("https://cdn.jsdelivr.net/npm/wasm-media-encoders@0.7.0/+esm");
+  let m;\n  try{m=await import("https://cdn.jsdelivr.net/npm/wasm-media-encoders@0.7.0/+esm")}\n  catch(first){m=await import("https://esm.sh/wasm-media-encoders@0.7.0")}
   createOggEncoder=m.createOggEncoder||(m.default&&m.default.createOggEncoder);
   if(!createOggEncoder)throw new Error("El codificador Ogg no está disponible en esta versión.");
 }
@@ -156,7 +156,7 @@ async function optimize(file,ctx,q,monoVoices){
 $("go").onclick=async()=>{
   const q=parseFloat($("q").value),mv=$("vm").checked,keep=$("keep").checked;
   const partMax=Math.max(20,parseInt($("mb").value)||120)*1048576;
-  $("go").disabled=true;$("prog").hidden=false;$("res").hidden=true;$("err").textContent="";
+  if(!files.length)return;\n  $("go").disabled=true;$("prog").hidden=false;$("res").hidden=true;$("err").textContent="";
   $("list").innerHTML="";$("dl").innerHTML="";
   let wl=null;try{wl=await navigator.wakeLock.request("screen")}catch(e){}
   try{
@@ -166,7 +166,7 @@ $("go").onclick=async()=>{
     $("err").textContent="No se pudo cargar el codificador (necesita internet la primera vez): "+e.message;
     $("go").disabled=false;return;
   }
-  const ctx=new (window.AudioContext||window.webkitAudioContext)({sampleRate:44100});
+  const AudioCtx=window.AudioContext||window.webkitAudioContext;\n  if(!AudioCtx){$("err").textContent="Este navegador no permite procesar audio. Probá con Chrome o Firefox actualizado.";$("go").disabled=false;if(wl)try{wl.release()}catch(e){}return}\n  let ctx;\n  try{ctx=new AudioCtx({sampleRate:44100})}catch(e){ctx=new AudioCtx()}
   const done=[],used=new Set();let before=0,after=0,fail=0;
   for(let i=0;i<files.length;i++){
     const f=files[i];
@@ -206,9 +206,9 @@ $("go").onclick=async()=>{
   });
   const sv=Math.round((1-after/before)*100);
   $("sum").textContent=`${fmt(before)} → ${fmt(after)} (-${sv}%)`;
-  $("sub").textContent=fail?`${fail} archivo(s) no se pudieron procesar y se dejaron igual.`:"Los nombres de archivo se mantienen iguales. Descomprime y reemplaza los originales.";
+  $("sub").textContent=fail?`${fail} archivo(s) no se pudieron procesar y se incluyeron sin cambios. Revisá que sean OGG válidos.`:"Los nombres de archivo se mantienen iguales. Descomprimí y reemplazá los originales.";
   $("st").textContent="Terminado.";$("res").hidden=false;$("go").disabled=false;
-  ctx.close();if(wl)try{wl.release()}catch(e){}
+  try{await ctx.close()}catch(e){}if(wl)try{wl.release()}catch(e){}
 };
 </script>
 </body>
