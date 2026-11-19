@@ -5,7 +5,7 @@ Pequeña colección de herramientas web para modders de **Friday Night Funkin'**
 <p align="center">
   <a href="https://unknown1232199.github.io/Optimization-FNF-deluxe-beta/"><strong>Abrir FNF Tools</strong></a>
   ·
-  <a href="https://unknown1232199.github.io/Optimization-FNF-deluxe-beta/optimizador-ogg.html">Optimizador OGG</a>
+  <a href="https://unknown1232199.github.io/Optimization-FNF-deluxe-beta/optimizador-ogg.html">Organizador OGG</a>
   ·
   <a href="https://unknown1232199.github.io/Optimization-FNF-deluxe-beta/Lo/">Convertidor osu!</a>
 </p>
@@ -14,20 +14,19 @@ Pequeña colección de herramientas web para modders de **Friday Night Funkin'**
 
 ## Herramientas
 
-### 01 · Optimizador OGG
+### 01 · Organizador OGG
 
-Procesa archivos de audio OGG/OGA de mods de FNF desde el navegador.
+Prepara un ZIP con archivos OGG/OGA de mods de FNF sin modificar su contenido.
 
 - Selección de varios archivos o de una carpeta completa.
-- Procesamiento secuencial con una sola instancia de OptiVorbis: un OGG a la vez.
+- Copia los archivos originales tal cual, sin recodificar ni alterar el audio.
 - Mantiene nombres y rutas de carpetas al crear el ZIP.
-- Usa **OptiVorbis** mediante WebAssembly para intentar optimizar el contenedor OGG sin recodificar el audio con pérdida.
-- Una capa propia de verificación comprueba CRC de páginas OGG, secuencias, cantidad de pistas, canales y frecuencia antes de aceptar el resultado.
-- Si el resultado no supera la verificación, falla o no reduce el tamaño, conserva el archivo original.
+- Conserva los nombres y las rutas de carpetas, incluidas `Voices`, `Player`, `Opponent` y `Vocals`.
+- No convierte a mono, no remuestrea y no intenta comprimir ni reescribir el OGG.
 - Incluye progreso general de **todas las canciones** y opción para mantener la pantalla encendida mientras la pestaña está visible (si el navegador admite Screen Wake Lock).
 - El procesamiento se realiza localmente: los archivos seleccionados no se envían a un servidor.
 
-**Audio y compatibilidad:** el verificador comprueba integridad estructural y que se mantengan la cantidad de pistas, canales y frecuencia; no compara muestras PCM ni sustituye una prueba auditiva. El optimizador no mezcla pistas, no convierte a mono ni cambia intencionalmente la separación entre instrumental y voces. Aun así, distintos engines o decodificadores pueden interpretar de forma diferente un OGG remuxeado. Probá siempre el resultado en tu mod y conservá una copia de seguridad, especialmente de `Voices`, `Player`, `Opponent` y `Vocals`.
+**Audio y compatibilidad:** esta herramienta no modifica el audio. El ZIP contiene los mismos archivos seleccionados, con sus nombres y carpetas.
 
 [Abrir el optimizador OGG](https://unknown1232199.github.io/Optimization-FNF-deluxe-beta/optimizador-ogg.html)
 
@@ -60,7 +59,7 @@ La compatibilidad depende del contenido del beatmap y de las opciones elegidas. 
 
 ## Estructura del proyecto
 
-Se mantienen las páginas principales en la raíz para conservar las URLs públicas de GitHub Pages. Los recursos internos del motor OGG están agrupados en `assets/ogg/`, y el convertidor osu! permanece separado en `Lo/`.
+Se mantienen las páginas principales en la raíz para conservar las URLs públicas de GitHub Pages. El convertidor osu! permanece separado en `Lo/`.
 
 ```text
 Optimization-FNF-deluxe-beta/
@@ -68,21 +67,17 @@ Optimization-FNF-deluxe-beta/
 │   └── workflows/
 │       └── pages.yml
 ├── assets/
-│   └── ogg/
-│       ├── optivorbis-worker.js
-│       └── 7864aa111af62d6a0d7f.module.wasm
 ├── Lo/
 │   └── index.html
 ├── index.html
 ├── optimizador-ogg.html
-├── OPTIVORBIS-LICENSE.txt
 └── README.md
 ```
 
 | Ruta | Función |
 |---|---|
 | `index.html` | Página principal y accesos a las herramientas |
-| `optimizador-ogg.html` | Interfaz del optimizador OGG |
+| `optimizador-ogg.html` | Interfaz del organizador OGG |
 | `assets/ogg/fnf-ogg-validator.js` | Verificador propio de integridad y estructura OGG antes de aceptar una salida |\n| `assets/ogg/optivorbis-worker.js` | Worker que procesa los archivos OGG con OptiVorbis |
 | `assets/ogg/*.wasm` | Módulo WebAssembly utilizado por OptiVorbis |
 | `Lo/convertidor-osu.html` | Convertidor de osu! / OSZ a Psych Engine |
@@ -97,10 +92,9 @@ Optimization-FNF-deluxe-beta/
 - El workflow de `.github/workflows/pages.yml` se encarga del despliegue.
 - No requiere instalar dependencias para usar las herramientas publicadas.
 
-Si modificás la ubicación del worker o del archivo WebAssembly, mantené actualizadas sus rutas en el optimizador: ambos recursos deben permanecer juntos dentro de `assets/ogg/`.
+
 
 ## Créditos y avisos
 
-- El optimizador utiliza **OptiVorbis**. Consultá [OPTIVORBIS-LICENSE.txt](./OPTIVORBIS-LICENSE.txt) para la licencia correspondiente.
 - Proyecto comunitario e independiente; no está afiliado oficialmente con Friday Night Funkin', Psych Engine ni osu!.
-- Los resultados pueden variar según el engine, el beatmap y el decodificador utilizado.
+- La conversión depende del contenido del beatmap y del engine de destino.
