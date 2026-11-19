@@ -3,40 +3,62 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#100d19">
-  <title>Herramientas para FNF</title>
+  <meta name="theme-color" content="#10120f">
+  <meta name="description" content="Herramientas sencillas para modders de Friday Night Funkin': optimizador OGG y convertidor osu! a Psych Engine.">
+  <title>FNF Tools — Audio & Modding</title>
   <style>
-    :root{color-scheme:dark;--bg:#100d19;--card:#1b1728;--text:#f2edff;--muted:#aaa1c2;--line:#342b4b;--accent:#a78bfa;--pink:#f472b6}
+    :root{color-scheme:dark;--bg:#10120f;--panel:#191d18;--text:#f1f0e7;--muted:#a2aa9b;--line:#343c31;--lime:#c8f169;--cyan:#77d9d1}
     *{box-sizing:border-box}
-    body{margin:0;min-height:100vh;padding:28px 16px;background:radial-gradient(850px 420px at 50% -160px,#50347c 0,transparent 70%),var(--bg);color:var(--text);font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
-    main{width:min(760px,100%);margin:7vh auto}
-    h1{font-size:clamp(1.8rem,6vw,2.6rem);line-height:1.1;margin:0 0 10px}
-    .intro{color:var(--muted);margin:0 0 28px}
-    .tools{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}
-    a{display:block;padding:20px;border:1px solid var(--line);border-radius:16px;background:var(--card);color:inherit;text-decoration:none;transition:transform .15s,border-color .15s}
-    a:hover,a:focus-visible{transform:translateY(-2px);border-color:var(--accent);outline:none}
-    .tag{display:inline-block;color:#171126;background:linear-gradient(100deg,var(--accent),var(--pink));font-size:.75rem;font-weight:800;padding:4px 9px;border-radius:999px;margin-bottom:12px}
-    h2{font-size:1.15rem;margin:0 0 7px}
-    p{color:var(--muted);font-size:.92rem;margin:0}
-    footer{margin-top:24px;color:var(--muted);font-size:.8rem}
+    body{margin:0;min-height:100vh;padding:22px 18px 34px;background:radial-gradient(700px 300px at 80% -120px,#34452a 0,transparent 72%),var(--bg);color:var(--text);font:15px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif}
+    main{width:min(900px,100%);margin:0 auto}
+    header{display:flex;align-items:center;justify-content:space-between;padding:12px 0 18px;border-bottom:1px solid var(--line)}
+    .brand{display:flex;align-items:center;gap:10px;font:600 12px ui-monospace,monospace;letter-spacing:.1em}
+    .mark{width:30px;height:30px;display:grid;place-items:center;border:1px solid #586b3a;border-radius:50%;color:var(--lime);font-size:17px}
+    .meta{font:9px ui-monospace,monospace;letter-spacing:.12em;color:var(--muted)}
+    .hero{padding:48px 0 32px;max-width:640px}
+    .eyebrow{color:var(--lime);font:10px ui-monospace,monospace;letter-spacing:.15em}
+    h1{font:400 clamp(42px,7vw,66px)/.98 Georgia,serif;letter-spacing:-.035em;margin:15px 0}
+    h1 em{color:var(--lime);font-weight:400}
+    .intro{color:var(--muted);max-width:560px;margin:0;font-size:14px}
+    .tools{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+    .tool{display:flex;flex-direction:column;min-height:190px;padding:19px;background:linear-gradient(145deg,#1c2419,#171c16);border:1px solid var(--line);color:inherit;text-decoration:none;transition:border-color .18s,transform .18s}
+    .tool:hover,.tool:focus-visible{border-color:#829d54;transform:translateY(-2px);outline:none}
+    .toolTop{display:flex;align-items:center;justify-content:space-between;color:var(--lime);font:9px ui-monospace,monospace;letter-spacing:.1em}
+    .symbol{width:32px;height:32px;display:grid;place-items:center;border:1px solid #4d6039;border-radius:50%;font-size:17px}
+    h2{font:400 27px Georgia,serif;margin:19px 0 6px}
+    .tool p{color:var(--muted);font-size:12px;margin:0;max-width:340px}
+    .open{margin-top:auto;padding-top:18px;color:var(--cyan);font:9px ui-monospace,monospace;letter-spacing:.1em}
+    footer{display:flex;justify-content:space-between;gap:16px;margin-top:26px;padding-top:14px;border-top:1px solid var(--line);color:#7f8978;font:9px ui-monospace,monospace;letter-spacing:.08em}
+    @media(max-width:580px){body{padding:12px 14px 24px}.meta{display:none}.hero{padding:38px 0 26px}.tools{grid-template-columns:1fr}.tool{min-height:160px;padding:16px}h2{margin-top:14px}footer{flex-direction:column;gap:6px}}
+    @media(prefers-reduced-motion:reduce){*,*:before,*:after{transition:none!important}}
   </style>
 </head>
 <body>
-  <main>
-    <span class="tag">FNF TOOLS</span>
-    <h1>Herramientas para Friday Night Funkin'</h1>
-    <p class="intro">Elegí la herramienta que querés usar. Se abre directamente en esta página.</p>
-    <section class="tools" aria-label="Herramientas disponibles">
-      <a href="./optimizador-ogg.html">
-        <h2>Optimizador de OGG</h2>
-        <p>Reduce el tamaño de archivos de audio .ogg desde el navegador.</p>
-      </a>
-      <a href="./Lo/">
-        <h2>Convertidor osu! / OSZ a Psych Engine</h2>
-        <p>Convierte mapas y packs compatibles para Psych Engine 1.0.4.</p>
-      </a>
-    </section>
-    <footer>Las herramientas se ejecutan en tu navegador.</footer>
-  </main>
+<main>
+  <header>
+    <div class="brand"><span class="mark" aria-hidden="true">♫</span><span>FNF / TOOLS</span></div>
+    <span class="meta">AUDIO & MODDING · VOL. 01</span>
+  </header>
+  <section class="hero">
+    <div class="eyebrow">HERRAMIENTAS PARA MODDERS</div>
+    <h1>Tu mod, tus reglas.<br><em>Herramientas útiles.</em></h1>
+    <p class="intro">Un pequeño espacio para trabajar con recursos de Friday Night Funkin'. Elegí una herramienta para empezar.</p>
+  </section>
+  <section class="tools" aria-label="Herramientas disponibles">
+    <a class="tool" href="./optimizador-ogg.html">
+      <div class="toolTop"><span>01 / AUDIO</span><span class="symbol" aria-hidden="true">♫</span></div>
+      <h2>Optimizador OGG</h2>
+      <p>Procesá varios audios o una carpeta completa y descargá el resultado en un ZIP, conservando la estructura.</p>
+      <span class="open">ABRIR HERRAMIENTA ↗</span>
+    </a>
+    <a class="tool" href="./Lo/">
+      <div class="toolTop"><span>02 / CONVERSIÓN</span><span class="symbol" aria-hidden="true">⇄</span></div>
+      <h2>osu! / OSZ a Psych Engine</h2>
+      <p>Convertí mapas y packs compatibles para Psych Engine 1.0.4.</p>
+      <span class="open">ABRIR HERRAMIENTA ↗</span>
+    </a>
+  </section>
+  <footer><span>HECHO PARA LA COMUNIDAD MODDER</span><span>LOS ARCHIVOS SE PROCESAN EN TU NAVEGADOR</span></footer>
+</main>
 </body>
 </html>
