@@ -65,9 +65,7 @@ Se mantienen las páginas principales en la raíz para conservar las URLs públi
 Optimization-FNF-deluxe-beta/
 ├── .github/
 │   └── workflows/
-│       └── pages.yml
-├── assets/
-├── Lo/
+│       └── pages.yml├── Lo/
 │   └── index.html
 ├── index.html
 ├── optimizador-ogg.html
@@ -77,12 +75,8 @@ Optimization-FNF-deluxe-beta/
 | Ruta | Función |
 |---|---|
 | `index.html` | Página principal y accesos a las herramientas |
-| `optimizador-ogg.html` | Interfaz del organizador OGG |
-| `assets/ogg/fnf-ogg-validator.js` | Verificador propio de integridad y estructura OGG antes de aceptar una salida |\n| `assets/ogg/optivorbis-worker.js` | Worker que procesa los archivos OGG con OptiVorbis |
-| `assets/ogg/*.wasm` | Módulo WebAssembly utilizado por OptiVorbis |
+| `optimizador-ogg.html` | Organizador OGG: crea un ZIP con los originales sin modificarlos |
 | `Lo/convertidor-osu.html` | Convertidor de osu! / OSZ a Psych Engine |
-| `OPTIVORBIS-LICENSE.txt` | Licencia del componente OptiVorbis |
-
 ---
 
 ## Desarrollo y publicación
