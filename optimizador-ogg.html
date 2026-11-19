@@ -17,10 +17,48 @@ header{margin:4px 0 18px}h1{font-size:1.55rem;letter-spacing:-.04em;margin:0 0 5
 #progress{height:8px;background:var(--border);border-radius:8px;overflow:hidden;margin:10px 0}#progress i{display:block;height:100%;width:0;background:var(--accent);transition:width .15s}
 #status{font-size:.88rem;color:var(--muted)}#result[hidden],#work[hidden]{display:none}.stat{font-size:1.35rem;font-weight:750;color:var(--ok)}.file{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:.84rem}.file b{font-weight:500;overflow-wrap:anywhere}.file span{white-space:nowrap;color:var(--muted)}#files{max-height:260px;overflow:auto;margin-top:8px}.foot{font-size:.8rem;color:var(--muted);margin-top:14px}
 @media(max-width:420px){.actions{grid-template-columns:1fr}}
+
+/* FNF Tools visual language */
+:root{color-scheme:dark;--bg:#10120f;--card:#191d18;--tx:#f1f0e7;--muted:#a2aa9b;--accent:#c8f169;--border:#343c31;--ok:#c8f169}
+*{box-sizing:border-box}
+body{max-width:900px;padding:22px 18px 38px;background:radial-gradient(700px 300px at 80% -120px,#34452a 0,transparent 72%),var(--bg);color:var(--tx);font:15px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif}
+header{margin:0 0 24px;padding:12px 0 18px;border-bottom:1px solid var(--border)}
+.topline{display:flex;justify-content:space-between;align-items:center;margin-bottom:38px}
+.brand{display:flex;align-items:center;gap:10px;font:600 12px ui-monospace,monospace;letter-spacing:.1em}
+.mark{width:30px;height:30px;display:grid;place-items:center;border:1px solid #586b3a;border-radius:50%;color:var(--accent);font-size:17px}
+.back{color:var(--muted);text-decoration:none;font:10px ui-monospace,monospace;letter-spacing:.1em}
+.back:hover{color:var(--accent)}
+.pill{border-color:#586b3a;color:var(--accent);font:10px ui-monospace,monospace;letter-spacing:.12em}
+h1{font:400 clamp(38px,6vw,56px)/1 Georgia,serif;letter-spacing:-.035em;margin:12px 0}
+.sub{color:var(--muted);font-size:.93rem}
+header .sub{max-width:590px}
+.card{background:linear-gradient(145deg,#1c2419,#171c16);border:1px solid var(--border);border-radius:2px;padding:20px;margin:13px 0}
+.actions{gap:10px}
+button{font:600 11px ui-monospace,monospace;letter-spacing:.08em;text-transform:uppercase;border-radius:2px;padding:13px;background:var(--accent);color:#151a10}
+button.secondary{background:transparent;color:var(--accent);border:1px solid #586b3a}
+button:disabled{opacity:.4}
+.selected{color:var(--muted)}
+.note,.foot{color:var(--muted)}
+.check{color:var(--tx)}
+.check input{accent-color:var(--accent)}
+#progress{height:5px;border-radius:0;background:#343c31}
+#progress i{background:var(--accent)}
+#status{font:10px ui-monospace,monospace;letter-spacing:.06em;color:var(--muted)}
+.stat{font:400 28px Georgia,serif;color:var(--accent)}
+.file{border-color:var(--border);font-size:12px}
+.file span{color:var(--muted)}
+#download a{background:var(--accent)!important;color:#151a10!important;border-radius:2px!important;font:600 11px ui-monospace,monospace!important;letter-spacing:.08em;text-transform:uppercase}
+#work,#result{border-top:1px solid #586b3a}
+.foot{border-top:1px solid var(--border);padding-top:14px;font:10px ui-monospace,monospace;letter-spacing:.04em}
+@media(max-width:580px){body{padding:12px 14px 28px}.topline{margin-bottom:30px}.card{padding:16px}}
+
 </style>
 </head>
 <body>
-<header><span class="pill">SIN PÉRDIDA · SIN RECODIFICAR</span><h1>OGG Slimmer</h1><p class="sub">Prepara todos los audios de tu mod en un ZIP, sin tocar cómo suenan.</p></header>
+<header>
+<div class="topline"><div class="brand"><span class="mark">♫</span><span>FNF / TOOLS</span></div><a class="back" href="./">← VOLVER AL INICIO</a></div>
+<span class="pill">01 / AUDIO · SIN PÉRDIDA</span><h1>OGG Slimmer</h1><p class="sub">Prepara los audios de tu mod en un ZIP, conservando cada archivo exactamente como está. Sin recodificar y sin alterar el sonido.</p>
+</header>
 <section class="card">
 <input id="file1" type="file" accept=".ogg,audio/ogg" multiple>
 <input id="file2" type="file" webkitdirectory multiple>
